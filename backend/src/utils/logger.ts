@@ -25,13 +25,5 @@ export const logger = winston.createLogger({
   ]
 });
 
-// Add file transport in production
-if (process.env.NODE_ENV === 'production') {
-  logger.add(new winston.transports.File({ 
-    filename: 'logs/error.log', 
-    level: 'error' 
-  }));
-  logger.add(new winston.transports.File({ 
-    filename: 'logs/combined.log' 
-  }));
-}
+// In production (Cloud Run), logs go to stdout/stderr captured by Cloud Logging
+// File transports are not needed and would fail due to read-only filesystem
