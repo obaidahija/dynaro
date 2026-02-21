@@ -8,7 +8,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Dynaro',
+  title: 'Dynrow',
   description: 'Manage your store menus and promotions in real-time',
 };
 

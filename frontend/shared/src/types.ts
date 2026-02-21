@@ -1,4 +1,4 @@
-// Shared types for Dynaro frontend applications
+// Shared types for Dynrow frontend applications
 
 export interface User {
   _id: string;

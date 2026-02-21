@@ -39,8 +39,8 @@ export default function Sidebar() {
     <aside className="flex flex-col w-64 min-h-screen bg-gray-900 text-white">
       {/* Brand */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-700">
-        <img src="/logo.png" alt="Dynaro" className="h-10 w-auto object-contain flex-shrink-0" />
-        <span className="text-lg font-bold tracking-tight">Dynaro</span>
+        <img src="/logo.png" alt="Dynrow" className="h-10 w-auto object-contain flex-shrink-0" />
+        <span className="text-lg font-bold tracking-tight">Dynrow</span>
       </div>
 
       {/* Navigation */}

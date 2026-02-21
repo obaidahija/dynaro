@@ -10,7 +10,7 @@ export default function DisplayPage() {
           </div>
           
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Dynaro Display Screen
+            Dynrow Display Screen
           </h1>
           
           <p className="text-xl text-gray-600 mb-8">
