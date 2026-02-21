@@ -32,8 +32,17 @@ jobs:
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
+      - name: Verify GCP authentication
+        run: gcloud auth list
+
       - name: Configure Docker for GCR
-        run: gcloud auth configure-docker gcr.io
+        run: |
+          gcloud auth configure-docker gcr.io
+          echo "Docker configured for GCR"
+
+      - name: Get Docker credentials
+        run: |
+          gcloud auth application-default print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
 
       - name: Build Docker image
         run: |
