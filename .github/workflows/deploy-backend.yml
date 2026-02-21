@@ -24,31 +24,38 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
-      - name: Verify GCP authentication
-        run: |
-          echo "Checking authentication..."
-          gcloud auth list
-          gcloud config list
-          gcloud config set project dynrow
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: dynrow
 
-      - name: Build and push with Cloud Build
+      - name: Verify authentication
         run: |
-          echo "Building image with Cloud Build..."
-          gcloud builds submit backend \
-            --config=backend/cloudbuild.yaml \
-            --region=us-central1 \
-            --substitutions=_IMAGE_NAME=dynaro-backend,_REGISTRY=us-central1-docker.pkg.dev,_REPOSITORY=dynaro-backend,COMMIT_SHA=${{ github.sha }} \
-            --project=dynrow
-          echo "Image built and pushed successfully"
+          gcloud auth list
+          gcloud config get-value project
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t us-central1-docker.pkg.dev/dynrow/dynaro-backend/dynaro-backend:${{ github.sha }} \
+            -t us-central1-docker.pkg.dev/dynrow/dynaro-backend/dynaro-backend:latest \
+            ./backend
+
+      - name: Push to Artifact Registry
+        run: |
+          docker push us-central1-docker.pkg.dev/dynrow/dynaro-backend/dynaro-backend:${{ github.sha }}
+          docker push us-central1-docker.pkg.dev/dynrow/dynaro-backend/dynaro-backend:latest
 
       - name: Deploy to Cloud Run
         run: |
