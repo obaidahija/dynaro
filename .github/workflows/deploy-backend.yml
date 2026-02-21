@@ -10,7 +10,8 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: gcr.io
+  REGISTRY: us-central1-docker.pkg.dev
+  REPOSITORY: dynaro-backend
   IMAGE_NAME: dynaro-backend
   GCP_REGION: us-central1
 
@@ -35,31 +36,31 @@ jobs:
       - name: Verify GCP authentication
         run: gcloud auth list
 
-      - name: Configure Docker for GCR
+      - name: Configure Docker for Artifact Registry
         run: |
-          gcloud auth configure-docker gcr.io
-          echo "Docker configured for GCR"
+          gcloud auth configure-docker ${{ env.REGISTRY }}
+          echo "Docker configured for Artifact Registry"
 
       - name: Get Docker credentials
         run: |
-          gcloud auth application-default print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
+          gcloud auth application-default print-access-token | docker login -u oauth2accesstoken --password-stdin https://${{ env.REGISTRY }}
 
       - name: Build Docker image
         run: |
           docker build \
-            -t ${{ env.REGISTRY }}/dynrow/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            -t ${{ env.REGISTRY }}/dynrow/${{ env.IMAGE_NAME }}:latest \
+            -t ${{ env.REGISTRY }}/dynrow/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/dynrow/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest \
             ./backend
 
-      - name: Push to Google Container Registry
+      - name: Push to Artifact Registry
         run: |
-          docker push ${{ env.REGISTRY }}/dynrow/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/dynrow/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/dynrow/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/dynrow/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.IMAGE_NAME }} \
-            --image ${{ env.REGISTRY }}/dynrow/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --image ${{ env.REGISTRY }}/dynrow/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             --region ${{ env.GCP_REGION }} \
             --platform managed \
             --allow-unauthenticated \
