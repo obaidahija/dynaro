@@ -1,0 +1,16 @@
+[
+  { "id": "coffee_shop",       "name": "Coffee Shop"       },
+  { "id": "restaurant",        "name": "Restaurant"         },
+  { "id": "bakery",            "name": "Bakery"             },
+  { "id": "fast_food",         "name": "Fast Food"          },
+  { "id": "bar_pub",           "name": "Bar & Pub"          },
+  { "id": "ice_cream_shop",    "name": "Ice Cream Shop"     },
+  { "id": "juice_bar",         "name": "Juice Bar"          },
+  { "id": "pizza_shop",        "name": "Pizza Shop"         },
+  { "id": "sushi_asian",       "name": "Sushi & Asian"      },
+  { "id": "sandwich_deli",     "name": "Sandwich & Deli"    },
+  { "id": "mexican",           "name": "Mexican"            },
+  { "id": "indian",            "name": "Indian"             },
+  { "id": "breakfast_brunch",  "name": "Breakfast & Brunch" },
+  { "id": "other",             "name": "Other"              }
+]

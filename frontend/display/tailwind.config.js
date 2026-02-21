@@ -1,0 +1,19 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      // Extra dark background (gray-950) not in Tailwind v3 by default
+      colors: {
+        gray: {
+          950: '#030712',
+        },
+      },
+    },
+  },
+  plugins: [],
+};
