@@ -1,5 +1,3 @@
-'use client';
-
 import type { ILayoutHeader, DisplayStore } from '../templates/types';
 import { DisplayHeader } from '@shared/components/DisplayHeader';
 

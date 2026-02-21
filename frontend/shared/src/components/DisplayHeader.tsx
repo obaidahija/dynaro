@@ -1,7 +1,6 @@
-'use client';
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import type { ILayoutHeader } from '../display-types';
+import { ClockWidget } from './ClockWidget';
 
 const NAME_SIZES: Record<string, string> = { sm: '1.0rem', md: '1.55rem', lg: '2.1rem', xl: '2.7rem' };
 // Scaled-down sizes for dashboard mock preview (em-based)
@@ -28,30 +27,10 @@ export function DisplayHeader({
   liveClock = true,
   mockSizes = false,
 }: DisplayHeaderProps) {
-  const [now, setNow] = useState<Date | null>(null);
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => {
-    setHydrated(true);
-    if (!liveClock) return;
-    setNow(new Date());
-    const t = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(t);
-  }, [liveClock]);
-
   if (!layout.visible) return null;
 
   const sizeMap = mockSizes ? MOCK_NAME_SIZES : NAME_SIZES;
   const nameFontSize = sizeMap[layout.name_size ?? 'md'];
-
-  const timeStr = liveClock
-    ? (now ? now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '')
-    : '12:00';
-  const dateStr = liveClock
-    ? (now ? now.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }) : '')
-    : 'Monday, Jan 1';
-
-  const showName = layout.show_name && (liveClock ? hydrated : true);
 
   return (
     <div
@@ -86,7 +65,7 @@ export function DisplayHeader({
           )
         )}
 
-        {showName && (
+        {layout.show_name && (
           <div>
             <div style={{
               color: '#fff',
@@ -115,16 +94,9 @@ export function DisplayHeader({
         )}
       </div>
 
-      {/* Right: clock */}
+      {/* Right: clock — isolated client component for just the ticking */}
       {layout.show_clock && (
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ color: '#fff', fontWeight: 900, fontSize: mockSizes ? '1.2rem' : '1.5rem', fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em' }}>
-            {timeStr}
-          </div>
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: mockSizes ? '0.65rem' : '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-            {dateStr}
-          </div>
-        </div>
+        <ClockWidget liveClock={liveClock} mockSizes={mockSizes} />
       )}
     </div>
   );

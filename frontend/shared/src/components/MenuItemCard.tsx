@@ -1,7 +1,15 @@
-'use client';
-
 import React from 'react';
-import type { IItemFieldColors, IItemFieldSizes, IItemFieldTags } from '../display-types';
+import type { IItemFieldColors, IItemFieldSizes, IItemFieldTags, CardPromotion } from '../display-types';
+
+function formatPrice(price: number): string {
+  return price.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+}
+
+function calcDiscounted(price: number, promo: CardPromotion): number {
+  return promo.discount_type === 'percentage'
+    ? price * (1 - promo.discount_value / 100)
+    : Math.max(0, price - promo.discount_value);
+}
 
 export interface CardItemData {
   _id: string;
@@ -40,6 +48,8 @@ export interface MenuItemCardProps {
   onMouseLeave?: () => void;
   /** CSS animation delay in ms — used by live display for staggered entry */
   animationDelay?: number;
+  /** Active promotion for this item — renders badge + discounted price */
+  promo?: CardPromotion | null;
   /** Click handlers for individual fields */
   onCategoryClick?: () => void;
   onNameClick?: () => void;
@@ -66,6 +76,7 @@ export function MenuItemCard({
   onNameClick,
   onPriceClick,
   selectedField,
+  promo,
 }: MenuItemCardProps) {
   const catColor   = fieldColors.category ?? '#ffffff';
   const nameColor  = fieldColors.name     ?? '#ffffff';
@@ -82,7 +93,8 @@ export function MenuItemCard({
         ? item.category
         : '';
 
-  const priceStr = item ? `$${item.price.toFixed(2)}` : '$0.00';
+  const discountedPrice = item && promo ? calcDiscounted(item.price, promo) : null;
+  const priceStr = item ? formatPrice(discountedPrice ?? item.price) : '$0.00';
   const letterFallback = item ? item.name[0].toUpperCase() : String(index + 1);
 
   const namePillStyle: React.CSSProperties = nameTag
@@ -132,6 +144,18 @@ export function MenuItemCard({
 
         {/* Gradient fade */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '48px', background: 'linear-gradient(to bottom, transparent, rgba(10,18,35,0.95))', pointerEvents: 'none' }} />
+
+        {/* Promo badge */}
+        {promo && (
+          <span style={{
+            position: 'absolute', top: '8px', right: '8px',
+            fontSize: '0.7em', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.04em',
+            background: promo.display_config.badge_color || '#ef4444',
+            color: '#fff', borderRadius: '999px', padding: '1px 10px',
+          }}>
+            {promo.display_config.badge_text}
+          </span>
+        )}
 
         {/* Category pill + optional controls */}
         {showCategory && catName && (
@@ -195,6 +219,11 @@ export function MenuItemCard({
               >
                 {priceStr}
               </span>
+              {promo && discountedPrice !== null && item && (
+                <span style={{ fontSize: '0.75em', color: 'rgba(255,255,255,0.35)', textDecoration: 'line-through', display: 'block' }}>
+                  {formatPrice(item.price)}
+                </span>
+              )}
             </div>
           </div>
         ) : (

@@ -58,6 +58,22 @@ export const MOCK_PRICE_SIZES: Record<string, string> = { xs: '0.45em', sm: '0.5
 export const SIZE_STEPS  = ['xs', 'sm', 'md', 'lg'] as const;
 export const SIZE_LABELS: Record<string, string> = { xs: 'XS', sm: 'S', md: 'M', lg: 'L' };
 
+/**
+ * Minimal promo shape needed to render a card — used by MenuItemCard.
+ * The display app's full DisplayPromotion is a structural superset of this.
+ */
+export interface CardPromotion {
+  _id: string;
+  discount_type: 'percentage' | 'fixed';
+  discount_value: number;
+  /** Empty array = applies to ALL items */
+  applicable_items: string[];
+  display_config: {
+    badge_text: string;
+    badge_color: string;
+  };
+}
+
 export const BG_THEMES: Record<string, { label: string; gradient: string }> = {
   dark:     { label: 'Dark',     gradient: 'linear-gradient(160deg, #071020 0%, #0c1e40 50%, #071020 100%)' },
   ocean:    { label: 'Ocean',    gradient: 'linear-gradient(160deg, #06141e 0%, #0a2d45 50%, #06141e 100%)' },
