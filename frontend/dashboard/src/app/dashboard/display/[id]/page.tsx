@@ -17,6 +17,8 @@ import {
   MOCK_CAT_SIZES, MOCK_NAME_SIZES, MOCK_PRICE_SIZES,
   SIZE_STEPS, SIZE_LABELS, BG_THEMES,
 } from '@shared/display-types';
+import { PropertiesPanel } from '../components/PropertiesPanel';
+import { ItemsPanel } from '../components/ItemsPanel';
 
 // ── Local types ───────────────────────────────────────────────────────────────
 
@@ -51,8 +53,6 @@ const DEFAULT_LAYOUT: ILayoutConfig = {
   banner: { visible: true, position: 'bottom' },
   bg_theme: 'dark',
 };
-
-type Zone = 'header' | 'main' | 'banner' | null;
 
 // ── Canvas mocks ──────────────────────────────────────────────────────────────
 
@@ -122,18 +122,21 @@ function TagToggle({ on, field, itemId, onChange }: { on: boolean; field: string
   );
 }
 
-function MainMock({ layout, selected, onSelect, hasBanner, items, itemColors = {}, itemSizes = {}, itemTags = {}, onItemColorChange, onItemSizeChange, onItemTagChange }: {
+function MainMock({ layout, selected, onSelect, hasBanner, items, itemColors = {}, itemSizes = {}, itemTags = {}, selectedField, onSelectField }: {
   layout: ILayoutMain; selected: boolean; onSelect: () => void; hasBanner: boolean; items: IMenuItem[];
   itemColors?: Record<string, IItemFieldColors>;
   itemSizes?:  Record<string, IItemFieldSizes>;
   itemTags?:   Record<string, IItemFieldTags>;
-  onItemColorChange?: (id: string, field: string, color: string) => void;
-  onItemSizeChange?:  (id: string, field: string, size: string) => void;
-  onItemTagChange?:   (id: string, field: string, v: boolean) => void;
+  selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
+  onSelectField?: (field: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null) => void;
 }) {
   const { columns, rows } = layout;
   const capacity = columns * rows;
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+  const handleFieldClick = (itemId: string, fieldType: 'category' | 'name' | 'price') => {
+    onSelect(); // Focus on Grid zone
+    onSelectField?.({ itemId, fieldType }); // Select the specific field
+  };
 
   return (
     <div
@@ -145,20 +148,12 @@ function MainMock({ layout, selected, onSelect, hasBanner, items, itemColors = {
         const perColor: IItemFieldColors = (item && itemColors[item._id]) ? itemColors[item._id] : {};
         const perSize:  IItemFieldSizes  = (item && itemSizes[item._id])  ? itemSizes[item._id]  : {};
         const perTag:   IItemFieldTags   = (item && itemTags[item._id])   ? itemTags[item._id]   : {};
-        const isHovered = hoveredIdx === i;
 
         const resolvedSizes = {
           category: MOCK_CAT_SIZES[perSize.category   ?? 'md'],
           name:     MOCK_NAME_SIZES[perSize.name       ?? 'lg'],
           price:    MOCK_PRICE_SIZES[perSize.price     ?? 'lg'],
         };
-
-        const catColor   = perColor.category ?? '#ffffff';
-        const nameColor  = perColor.name     ?? '#ffffff';
-        const priceColor = perColor.price    ?? '#ffffff';
-        const catTag   = perTag.category ?? true;
-        const nameTag  = perTag.name     ?? false;
-        const priceTag = perTag.price    ?? false;
 
         return (
           <MenuItemCard
@@ -170,30 +165,11 @@ function MainMock({ layout, selected, onSelect, hasBanner, items, itemColors = {
             fieldSizes={perSize}
             fieldTags={perTag}
             resolvedSizes={resolvedSizes}
-            isEditing={isHovered && item !== null}
-            onMouseEnter={() => item && setHoveredIdx(i)}
-            onMouseLeave={() => setHoveredIdx(null)}
-            categoryControls={isHovered && item && onItemColorChange ? (
-              <>
-                <ColorDot color={catColor} field="category" itemId={item._id} onChange={onItemColorChange} />
-                {onItemSizeChange && <SizeStepper size={perSize.category ?? 'md'} field="category" itemId={item._id} onChange={onItemSizeChange} />}
-                {onItemTagChange  && <TagToggle on={catTag} field="category" itemId={item._id} onChange={onItemTagChange} />}
-              </>
-            ) : undefined}
-            nameControls={isHovered && item && onItemColorChange ? (
-              <>
-                <ColorDot color={nameColor} field="name" itemId={item._id} onChange={onItemColorChange} />
-                {onItemSizeChange && <SizeStepper size={perSize.name ?? 'lg'} field="name" itemId={item._id} onChange={onItemSizeChange} />}
-                {onItemTagChange  && <TagToggle on={nameTag} field="name" itemId={item._id} onChange={onItemTagChange} />}
-              </>
-            ) : undefined}
-            priceControls={isHovered && item && onItemColorChange ? (
-              <>
-                <ColorDot color={priceColor} field="price" itemId={item._id} onChange={onItemColorChange} />
-                {onItemSizeChange && <SizeStepper size={perSize.price ?? 'lg'} field="price" itemId={item._id} onChange={onItemSizeChange} />}
-                {onItemTagChange  && <TagToggle on={priceTag} field="price" itemId={item._id} onChange={onItemTagChange} />}
-              </>
-            ) : undefined}
+            isEditing={false}
+            selectedField={selectedField}
+            onCategoryClick={() => item && handleFieldClick(item._id, 'category')}
+            onNameClick={() => item && handleFieldClick(item._id, 'name')}
+            onPriceClick={() => item && handleFieldClick(item._id, 'price')}
           />
         );
       })}
@@ -214,14 +190,13 @@ function BannerMock({ selected, onSelect }: { selected: boolean; onSelect: () =>
   );
 }
 
-function SlideCanvas({ layout, selectedZone, onSelectZone, items, itemColors, itemSizes, itemTags, onItemColorChange, onItemSizeChange, onItemTagChange }: {
+function SlideCanvas({ layout, selectedZone, onSelectZone, items, itemColors, itemSizes, itemTags, selectedField, onSelectField }: {
   layout: ILayoutConfig; selectedZone: Zone; onSelectZone: (z: Zone) => void; items: IMenuItem[];
   itemColors?: Record<string, IItemFieldColors>;
   itemSizes?:  Record<string, IItemFieldSizes>;
   itemTags?:   Record<string, IItemFieldTags>;
-  onItemColorChange?: (id: string, field: string, color: string) => void;
-  onItemSizeChange?:  (id: string, field: string, size: string) => void;
-  onItemTagChange?:   (id: string, field: string, v: boolean) => void;
+  selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
+  onSelectField?: (field: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null) => void;
 }) {
   const bg = BG_THEMES[layout.bg_theme ?? 'dark'].gradient;
   return (
@@ -232,7 +207,7 @@ function SlideCanvas({ layout, selectedZone, onSelectZone, items, itemColors, it
     >
       {layout.banner.visible && layout.banner.position === 'top' && <BannerMock selected={selectedZone === 'banner'} onSelect={() => onSelectZone('banner')} />}
       {layout.header.visible && <HeaderMock layout={layout.header} selected={selectedZone === 'header'} onSelect={() => onSelectZone('header')} />}
-      <MainMock layout={layout.main} selected={selectedZone === 'main'} onSelect={() => onSelectZone('main')} hasBanner={layout.banner.visible} items={items} itemColors={itemColors} itemSizes={itemSizes} itemTags={itemTags} onItemColorChange={onItemColorChange} onItemSizeChange={onItemSizeChange} onItemTagChange={onItemTagChange} />
+      <MainMock layout={layout.main} selected={selectedZone === 'main'} onSelect={() => onSelectZone('main')} hasBanner={layout.banner.visible} items={items} itemColors={itemColors} itemSizes={itemSizes} itemTags={itemTags} selectedField={selectedField} onSelectField={onSelectField} />
       {layout.banner.visible && layout.banner.position === 'bottom' && <BannerMock selected={selectedZone === 'banner'} onSelect={() => onSelectZone('banner')} />}
     </div>
   );
@@ -254,87 +229,6 @@ function LayoutDiagram({ layout }: { layout: ILayoutConfig }) {
   );
 }
 
-// ── Properties panel ──────────────────────────────────────────────────────────
-
-function PropRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="flex items-center justify-between gap-2 py-2.5 border-b border-gray-100 last:border-0"><span className="text-sm text-gray-600 shrink-0">{label}</span><div>{children}</div></div>;
-}
-function MiniToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
-  return <button type="button" onClick={() => onChange(!value)} className={`relative w-9 h-5 rounded-full transition-colors ${value ? 'bg-blue-600' : 'bg-gray-200'}`}><span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${value ? 'translate-x-4' : 'translate-x-0.5'}`} /></button>;
-}
-function PillButtons({ options, value, onChange }: { options: { key: string; label: string }[]; value: string; onChange: (v: string) => void }) {
-  return <div className="flex gap-1 flex-wrap">{options.map(({ key, label }) => <button key={key} type="button" onClick={() => onChange(key)} className={`px-2.5 py-1 text-xs font-bold rounded-md border transition-colors ${value === key ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200 hover:border-blue-300'}`}>{label}</button>)}</div>;
-}
-function NumPills({ options, value, onChange }: { options: number[]; value: number; onChange: (v: number) => void }) {
-  return <div className="flex gap-1">{options.map((n) => <button key={n} type="button" onClick={() => onChange(n)} className={`w-8 h-8 text-sm font-bold rounded-md border transition-colors ${value === n ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'}`}>{n}</button>)}</div>;
-}
-
-function PropertiesPanel({ layout, selectedZone, patchLayout }: {
-  layout: ILayoutConfig; selectedZone: Zone; patchLayout: (updater: (l: ILayoutConfig) => ILayoutConfig) => void;
-}) {
-  const ph = (p: Partial<ILayoutHeader>) => patchLayout((l) => ({ ...l, header: { ...l.header, ...p } }));
-  const pm = (p: Partial<ILayoutMain>) => patchLayout((l) => ({ ...l, main: { ...l.main, ...p } }));
-  const pb = (p: Partial<ILayoutBanner>) => patchLayout((l) => ({ ...l, banner: { ...l.banner, ...p } }));
-
-  if (!selectedZone) {
-    return (
-      <div className="p-4 space-y-4">
-        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Background Theme</div>
-        <div className="grid grid-cols-5 gap-1.5">
-          {Object.entries(BG_THEMES).map(([key, { label, gradient }]) => {
-            const active = (layout.bg_theme ?? 'dark') === key;
-            return <button key={key} type="button" title={label} onClick={() => patchLayout((l) => ({ ...l, bg_theme: key as ILayoutConfig['bg_theme'] }))} className={`aspect-square rounded-lg border-2 transition-all ${active ? 'border-blue-500 scale-110' : 'border-gray-200 hover:border-gray-400'}`} style={{ background: gradient }} />;
-          })}
-        </div>
-        <div className="text-xs text-gray-400 text-center capitalize">{BG_THEMES[layout.bg_theme ?? 'dark'].label}</div>
-        <div className="pt-3 border-t text-xs text-gray-400 text-center leading-relaxed">Click a zone on the canvas<br />to edit its properties</div>
-      </div>
-    );
-  }
-  if (selectedZone === 'header') {
-    const h = layout.header;
-    return (
-      <div className="p-4">
-        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Header</div>
-        <div className="divide-y divide-gray-100">
-          <PropRow label="Visible"><MiniToggle value={h.visible} onChange={(v) => ph({ visible: v })} /></PropRow>
-          <PropRow label="Store name"><MiniToggle value={h.show_name} onChange={(v) => ph({ show_name: v })} /></PropRow>
-          <PropRow label="Logo"><MiniToggle value={h.show_logo} onChange={(v) => ph({ show_logo: v })} /></PropRow>
-          <PropRow label="Clock"><MiniToggle value={h.show_clock} onChange={(v) => ph({ show_clock: v })} /></PropRow>
-          <div className="py-3"><div className="text-sm text-gray-600 mb-2">Name size</div><PillButtons options={[{ key: 'sm', label: 'S' }, { key: 'md', label: 'M' }, { key: 'lg', label: 'L' }, { key: 'xl', label: 'XL' }]} value={h.name_size ?? 'md'} onChange={(v) => ph({ name_size: v as ILayoutHeader['name_size'] })} /></div>
-        </div>
-      </div>
-    );
-  }
-  if (selectedZone === 'main') {
-    const m = layout.main;
-    return (
-      <div className="p-4">
-        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Grid</div>
-        <div className="space-y-4">
-          <div><div className="text-sm text-gray-600 mb-2">Columns</div><NumPills options={[1, 2, 3, 4]} value={m.columns} onChange={(v) => pm({ columns: v })} /></div>
-          <div><div className="text-sm text-gray-600 mb-2">Rows</div><NumPills options={[1, 2, 3]} value={m.rows} onChange={(v) => pm({ rows: v })} /></div>
-          <div className="flex items-center justify-between border-t pt-3"><span className="text-sm text-gray-600">Category label</span><MiniToggle value={m.show_category_label} onChange={(v) => pm({ show_category_label: v })} /></div>
-          <div className="border-t pt-3 text-xs text-gray-400 leading-relaxed">Hover over items on the canvas to set per-item colors, sizes &amp; tag style (◉)</div>
-        </div>
-      </div>
-    );
-  }
-  if (selectedZone === 'banner') {
-    const b = layout.banner;
-    return (
-      <div className="p-4">
-        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Flash Sale Banner</div>
-        <div className="divide-y divide-gray-100">
-          <PropRow label="Visible"><MiniToggle value={b.visible} onChange={(v) => pb({ visible: v })} /></PropRow>
-          <div className="py-3"><div className="text-sm text-gray-600 mb-2">Position</div><PillButtons options={[{ key: 'top', label: '↑ Top' }, { key: 'bottom', label: '↓ Bottom' }]} value={b.position} onChange={(v) => pb({ position: v as 'top' | 'bottom' })} /></div>
-        </div>
-      </div>
-    );
-  }
-  return null;
-}
-
 // ── Slide Editor (full-screen overlay) ───────────────────────────────────────
 
 function SlideEditor({ slide, allItems, categories, onSave, onClose, isSaving }: {
@@ -353,6 +247,7 @@ function SlideEditor({ slide, allItems, categories, onSave, onClose, isSaving }:
   const [itemSizes,  setItemSizes]  = useState<Record<string, IItemFieldSizes>>(slide?.item_sizes  ?? {});
   const [itemTags,   setItemTags]   = useState<Record<string, IItemFieldTags>>(slide?.item_tags    ?? {});
   const [selectedZone, setSelectedZone] = useState<Zone>('main');
+  const [selectedField, setSelectedField] = useState<{ itemId: string; fieldType: 'category' | 'name' | 'price' } | null>(null);
   const [catFilter, setCatFilter] = useState('all');
   const [orientation, setOrientation] = useState<'landscape' | 'portrait'>('landscape');
 
@@ -373,6 +268,42 @@ function SlideEditor({ slide, allItems, categories, onSave, onClose, isSaving }:
     }
     return activeItems;
   }, [slide, selectedIds, allItems, activeItems]);
+
+  // Handle field color changes - apply only to the selected item
+  const handleFieldColorChange = useCallback((field: 'category' | 'name' | 'price', color: string) => {
+    if (!selectedField) return;
+    setItemColors((prev) => ({
+      ...prev,
+      [selectedField.itemId]: {
+        ...(prev[selectedField.itemId] ?? {}),
+        [field]: color
+      }
+    }));
+  }, [selectedField]);
+
+  // Handle field size changes - apply only to the selected item
+  const handleFieldSizeChange = useCallback((field: 'category' | 'name' | 'price', size: string) => {
+    if (!selectedField) return;
+    setItemSizes((prev) => ({
+      ...prev,
+      [selectedField.itemId]: {
+        ...(prev[selectedField.itemId] ?? {}),
+        [field]: size
+      }
+    }));
+  }, [selectedField]);
+
+  // Handle field tag changes - apply only to the selected item
+  const handleFieldTagChange = useCallback((field: 'category' | 'name' | 'price', tag: boolean) => {
+    if (!selectedField) return;
+    setItemTags((prev) => ({
+      ...prev,
+      [selectedField.itemId]: {
+        ...(prev[selectedField.itemId] ?? {}),
+        [field]: tag
+      }
+    }));
+  }, [selectedField]);
 
   function toggle(id: string) {
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
@@ -434,39 +365,14 @@ function SlideEditor({ slide, allItems, categories, onSave, onClose, isSaving }:
       {/* Body: items | canvas | properties */}
       <div className="flex flex-1 min-h-0">
         {/* Left: items panel */}
-        <div className="shrink-0 w-60 border-r border-white/10 bg-gray-900 flex flex-col overflow-hidden">
-          <div className="px-3 pt-3 pb-2 border-b border-white/10">
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Items</div>
-            <div className="text-xs text-gray-500 mb-2">
-              {selectedIds.length === 0 ? 'All items shown on display' : `${selectedIds.length} selected`}
-            </div>
-            <div className="flex flex-wrap gap-1">
-              <button onClick={() => setCatFilter('all')} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${catFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>All</button>
-              {categories.map((c) => (
-                <button key={c._id} onClick={() => setCatFilter(c._id)} className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${catFilter === c._id ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>{c.name}</button>
-              ))}
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
-            {filtered.map((item) => {
-              const checked = selectedIds.includes(item._id);
-              return (
-                <label key={item._id} className={`flex items-center gap-2 p-1.5 rounded-lg cursor-pointer transition-colors ${checked ? 'bg-blue-900/40 border border-blue-700/50' : 'hover:bg-gray-800'}`}>
-                  <input type="checkbox" checked={checked} onChange={() => toggle(item._id)} className="w-3.5 h-3.5 accent-blue-600 shrink-0" />
-                  {item.image_url
-                    // eslint-disable-next-line @next/next/no-img-element
-                    ? <img src={item.image_url} alt={item.name} className="w-7 h-7 rounded object-cover shrink-0" />
-                    : <div className="w-7 h-7 rounded bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-400 shrink-0">{item.name[0]}</div>
-                  }
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-gray-200 truncate">{item.name}</p>
-                    <p className="text-xs text-gray-500">{item.category.name} · ${item.price.toFixed(2)}</p>
-                  </div>
-                </label>
-              );
-            })}
-          </div>
-        </div>
+        <ItemsPanel
+          categories={categories}
+          filtered={filtered}
+          selectedIds={selectedIds}
+          catFilter={catFilter}
+          onToggleItem={toggle}
+          onChangeCategoryFilter={setCatFilter}
+        />
 
         {/* Center: live canvas */}
         <div className="flex-1 flex items-center justify-center p-6 overflow-hidden">
@@ -485,16 +391,26 @@ function SlideEditor({ slide, allItems, categories, onSave, onClose, isSaving }:
               itemColors={itemColors}
               itemSizes={itemSizes}
               itemTags={itemTags}
-              onItemColorChange={(id, field, color) => setItemColors((prev) => ({ ...prev, [id]: { ...(prev[id] ?? {}), [field]: color } }))}
-              onItemSizeChange={(id, field, size) => setItemSizes((prev) => ({ ...prev, [id]: { ...(prev[id] ?? {}), [field]: size } }))}
-              onItemTagChange={(id, field, v) => setItemTags((prev) => ({ ...prev, [id]: { ...(prev[id] ?? {}), [field]: v } }))}
+              selectedField={selectedField}
+              onSelectField={setSelectedField}
             />
           </div>
         </div>
 
         {/* Right: properties */}
         <div className="shrink-0 w-60 border-l border-white/10 bg-white overflow-y-auto">
-          <PropertiesPanel layout={layout} selectedZone={selectedZone} patchLayout={patchLayout} />
+          <PropertiesPanel
+            layout={layout}
+            selectedZone={selectedZone}
+            patchLayout={patchLayout}
+            selectedField={selectedField}
+            itemColors={itemColors}
+            itemSizes={itemSizes}
+            itemTags={itemTags}
+            onChangeFieldColor={handleFieldColorChange}
+            onChangeFieldSize={handleFieldSizeChange}
+            onChangeFieldTag={handleFieldTagChange}
+          />
         </div>
       </div>
     </div>

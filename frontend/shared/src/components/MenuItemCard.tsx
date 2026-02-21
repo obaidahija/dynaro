@@ -40,6 +40,12 @@ export interface MenuItemCardProps {
   onMouseLeave?: () => void;
   /** CSS animation delay in ms — used by live display for staggered entry */
   animationDelay?: number;
+  /** Click handlers for individual fields */
+  onCategoryClick?: () => void;
+  onNameClick?: () => void;
+  onPriceClick?: () => void;
+  /** Which field is currently selected for styling (itemId + fieldType) */
+  selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
 }
 
 export function MenuItemCard({
@@ -56,6 +62,10 @@ export function MenuItemCard({
   onMouseEnter,
   onMouseLeave,
   animationDelay,
+  onCategoryClick,
+  onNameClick,
+  onPriceClick,
+  selectedField,
 }: MenuItemCardProps) {
   const catColor   = fieldColors.category ?? '#ffffff';
   const nameColor  = fieldColors.name     ?? '#ffffff';
@@ -127,6 +137,7 @@ export function MenuItemCard({
         {showCategory && catName && (
           <div style={{ position: 'absolute', top: '8px', left: '8px', right: '8px', zIndex: 1, display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span
+              onClick={(e) => { e.stopPropagation(); onCategoryClick?.(); }}
               style={{
                 fontSize: resolvedSizes.category,
                 fontWeight: 700,
@@ -134,6 +145,7 @@ export function MenuItemCard({
                 letterSpacing: '0.05em',
                 lineHeight: 1.4,
                 flexShrink: 0,
+                cursor: onCategoryClick ? 'pointer' : 'default',
                 ...(catTag
                   ? { color: catColor, background: `${catColor}28`, border: `1px solid ${catColor}44`, borderRadius: '999px', padding: '1px 10px', backdropFilter: 'blur(6px)' }
                   : { color: catColor }),
@@ -152,6 +164,7 @@ export function MenuItemCard({
           /* ── Display layout: matches live display exactly ── */
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', gap: '8px' }}>
             <span
+              onClick={(e) => { e.stopPropagation(); onNameClick?.(); }}
               style={{
                 fontWeight: 700,
                 fontSize: resolvedSizes.name,
@@ -162,13 +175,24 @@ export function MenuItemCard({
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
+                cursor: onNameClick ? 'pointer' : 'default',
                 ...namePillStyle,
               } as React.CSSProperties}
             >
               {item?.name ?? `Item ${index + 1}`}
             </span>
             <div style={{ flexShrink: 0, textAlign: 'right' }}>
-              <span style={{ display: 'block', fontWeight: 900, fontSize: resolvedSizes.price, color: priceColor, ...pricePillStyle }}>
+              <span
+                onClick={(e) => { e.stopPropagation(); onPriceClick?.(); }}
+                style={{
+                  display: 'block',
+                  fontWeight: 900,
+                  fontSize: resolvedSizes.price,
+                  color: priceColor,
+                  cursor: onPriceClick ? 'pointer' : 'default',
+                  ...pricePillStyle
+                }}
+              >
                 {priceStr}
               </span>
             </div>
@@ -178,7 +202,20 @@ export function MenuItemCard({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px' }}>
             {/* Name row */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ fontWeight: 700, fontSize: resolvedSizes.name, color: nameColor, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', ...namePillStyle }}>
+              <span
+                onClick={(e) => { e.stopPropagation(); onNameClick?.(); }}
+                style={{
+                  fontWeight: 700,
+                  fontSize: resolvedSizes.name,
+                  color: nameColor,
+                  flex: 1,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  cursor: onNameClick ? 'pointer' : 'default',
+                  ...namePillStyle
+                }}
+              >
                 {item?.name ?? `Item ${index + 1}`}
               </span>
               {nameControls}
@@ -186,7 +223,16 @@ export function MenuItemCard({
             {/* Price row */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
               {priceControls}
-              <span style={{ fontWeight: 900, fontSize: resolvedSizes.price, color: priceColor, ...pricePillStyle }}>
+              <span
+                onClick={(e) => { e.stopPropagation(); onPriceClick?.(); }}
+                style={{
+                  fontWeight: 900,
+                  fontSize: resolvedSizes.price,
+                  color: priceColor,
+                  cursor: onPriceClick ? 'pointer' : 'default',
+                  ...pricePillStyle
+                }}
+              >
                 {priceStr}
               </span>
             </div>
