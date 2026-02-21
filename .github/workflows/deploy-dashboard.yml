@@ -16,6 +16,10 @@ env:
   IMAGE_NAME: dynaro-dashboard
   GCP_REGION: us-central1
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
