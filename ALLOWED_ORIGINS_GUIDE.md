@@ -16,7 +16,7 @@ If your production setup is:
 - **Display App**: `https://display.yourdomain.com`
 - **Dashboard App**: `https://dashboard.yourdomain.com`
 
-Set `PROD_ALLOWED_ORIGINS` to:
+Set Var `PROD_ALLOWED_ORIGINS` to:
 ```
 https://display.yourdomain.com,https://dashboard.yourdomain.com
 ```
