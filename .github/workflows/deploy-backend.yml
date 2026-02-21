@@ -59,6 +59,7 @@ jobs:
             --set-env-vars MONGODB_URI=${{ secrets.PROD_MONGODB_URI }} \
             --set-env-vars JWT_SECRET=${{ secrets.PROD_JWT_SECRET }} \
             --set-env-vars REDIS_URL=${{ secrets.PROD_REDIS_URL }} \
+            --set-env-vars ALLOWED_ORIGINS=${{ secrets.PROD_ALLOWED_ORIGINS }} \
             --set-env-vars CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }} \
             --set-env-vars CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
             --set-env-vars CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \

@@ -102,6 +102,7 @@ In your GitHub repository settings, add these secrets:
 - `PROD_MONGODB_URI` - Production MongoDB connection string (e.g., Atlas)
 - `PROD_JWT_SECRET` - Secure JWT secret (generate with: `openssl rand -base64 32`)
 - `PROD_REDIS_URL` - Production Redis URL (e.g., Redis Cloud)
+- `PROD_ALLOWED_ORIGINS` - Comma-separated list of allowed frontend URLs (e.g., `https://domain.com,https://app.domain.com`)
 - `CLOUDINARY_CLOUD_NAME` - Your Cloudinary cloud name
 - `CLOUDINARY_API_KEY` - Your Cloudinary API key
 - `CLOUDINARY_API_SECRET` - Your Cloudinary API secret

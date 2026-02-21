@@ -73,6 +73,7 @@ In your GitHub repo Settings → Secrets and variables → Actions, add:
 | `PROD_MONGODB_URI` | MongoDB connection string |
 | `PROD_JWT_SECRET` | `openssl rand -base64 32` |
 | `PROD_REDIS_URL` | Redis connection string |
+| `PROD_ALLOWED_ORIGINS` | Comma-separated origins (e.g., `https://domain.com,https://app.domain.com`) |
 | `CLOUDINARY_CLOUD_NAME` | Your Cloudinary name |
 | `CLOUDINARY_API_KEY` | Your Cloudinary key |
 | `CLOUDINARY_API_SECRET` | Your Cloudinary secret |
