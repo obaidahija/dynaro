@@ -1,0 +1,37 @@
+steps:
+  # Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGISTRY}/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:${COMMIT_SHA}'
+      - '-t'
+      - '${_REGISTRY}/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:latest'
+      - '.'
+    id: 'build-image'
+
+  # Push to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '${_REGISTRY}/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:${COMMIT_SHA}'
+    id: 'push-image-sha'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '${_REGISTRY}/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:latest'
+    id: 'push-image-latest'
+
+images:
+  - '${_REGISTRY}/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:${COMMIT_SHA}'
+  - '${_REGISTRY}/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE_NAME}:latest'
+
+substitutions:
+  _REGISTRY: 'us-central1-docker.pkg.dev'
+  _REPOSITORY: 'dynaro-backend'
+  _IMAGE_NAME: 'dynaro-backend'
+
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY

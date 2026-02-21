@@ -39,23 +39,14 @@ jobs:
           gcloud auth list
           gcloud config list
 
-      - name: Configure Docker for Artifact Registry
+      - name: Build and push with Cloud Build
         run: |
-          echo "Configuring Docker for Artifact Registry..."
-          gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
-          echo "Docker authentication configured"
-
-      - name: Build Docker image
-        run: |
-          docker build \
-            -t ${{ env.REGISTRY }}/dynrow/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            -t ${{ env.REGISTRY }}/dynrow/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest \
-            ./backend
-
-      - name: Push to Artifact Registry
-        run: |
-          docker push ${{ env.REGISTRY }}/dynrow/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/dynrow/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
+          echo "Building image with Cloud Build..."
+          gcloud builds submit backend \
+            --config=backend/cloudbuild.yaml \
+            --region=${{ env.GCP_REGION }} \
+            --substitutions=_IMAGE_NAME=${{ env.IMAGE_NAME }},_REGISTRY=${{ env.REGISTRY }},_REPOSITORY=${{ env.REPOSITORY }},COMMIT_SHA=${{ github.sha }}
+          echo "Image built and pushed successfully"
 
       - name: Deploy to Cloud Run
         run: |
