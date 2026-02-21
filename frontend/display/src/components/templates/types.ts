@@ -1,3 +1,5 @@
+import type { IItemFieldTags } from '@shared/display-types';
+
 /**
  * ── Template Placeholder Contract ──────────────────────────────────────────
  *

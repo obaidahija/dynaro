@@ -1,6 +1,7 @@
 import { MenuItemCard } from '@shared/components/MenuItemCard';
 import { DISPLAY_CAT_SIZES, DISPLAY_NAME_SIZES, DISPLAY_PRICE_SIZES } from '@shared/display-types';
-import type { ILayoutMain, DisplayMenuItem, DisplayPromotion, IItemFieldColors, IItemFieldSizes, IItemFieldTags } from '../templates/types';
+import type { IItemFieldColors, IItemFieldSizes, IItemFieldTags } from '@shared/display-types';
+import type { ILayoutMain, DisplayMenuItem, DisplayPromotion } from '../templates/types';
 
 // ── MenuGridBlock ─────────────────────────────────────────────────────────────
 

@@ -7,6 +7,15 @@ dashboard/.env
 dashboard/.env.local
 dashboard/.env.development
 dashboard/.env.production
+display/node_modules/
+display/.next/
+display/npm-debug.log*
+display/.DS_Store
+display/*.log
+display/.env
+display/.env.local
+display/.env.development
+display/.env.production
 shared/node_modules/
 .git
 .gitignore
