@@ -34,16 +34,16 @@ jobs:
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
       - name: Verify GCP authentication
-        run: gcloud auth list
+        run: |
+          echo "Checking authentication..."
+          gcloud auth list
+          gcloud config list
 
       - name: Configure Docker for Artifact Registry
         run: |
-          gcloud auth configure-docker ${{ env.REGISTRY }}
-          echo "Docker configured for Artifact Registry"
-
-      - name: Get Docker credentials
-        run: |
-          gcloud auth application-default print-access-token | docker login -u oauth2accesstoken --password-stdin https://${{ env.REGISTRY }}
+          echo "Configuring Docker for Artifact Registry..."
+          gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+          echo "Docker authentication configured"
 
       - name: Build Docker image
         run: |
