@@ -59,20 +59,21 @@ jobs:
           docker push us-central1-docker.pkg.dev/dynrow/dynaro-backend/dynaro-backend:latest
 
       - name: Deploy to Cloud Run
+        env:
+          MONGODB_URI: ${{ secrets.PROD_MONGODB_URI }}
+          JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
+          REDIS_URL: ${{ secrets.PROD_REDIS_URL }}
+          ALLOWED_ORIGINS: ${{ secrets.PROD_ALLOWED_ORIGINS }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
         run: |
           gcloud run deploy dynaro-backend \
             --image us-central1-docker.pkg.dev/dynrow/dynaro-backend/dynaro-backend:${{ github.sha }} \
             --region us-central1 \
             --platform managed \
             --allow-unauthenticated \
-            --set-env-vars NODE_ENV=production \
-            --set-env-vars MONGODB_URI=${{ secrets.PROD_MONGODB_URI }} \
-            --set-env-vars JWT_SECRET=${{ secrets.PROD_JWT_SECRET }} \
-            --set-env-vars REDIS_URL=${{ secrets.PROD_REDIS_URL }} \
-            --set-env-vars ALLOWED_ORIGINS=${{ secrets.PROD_ALLOWED_ORIGINS }} \
-            --set-env-vars CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }} \
-            --set-env-vars CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
-            --set-env-vars CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \
+            --set-env-vars "^||^NODE_ENV=production||MONGODB_URI=${MONGODB_URI}||JWT_SECRET=${JWT_SECRET}||REDIS_URL=${REDIS_URL}||ALLOWED_ORIGINS=${ALLOWED_ORIGINS}||CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}||CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}||CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}" \
             --memory 512Mi \
             --cpu 1 \
             --timeout 3600s \
