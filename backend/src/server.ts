@@ -32,16 +32,24 @@ import menuRoutes from './routes/menu';
 import promotionRoutes from './routes/promotions';
 import playlistRoutes from './routes/playlists';
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/dynaro')
-  .then(() => {
-    logger.info('Connected to MongoDB');
-    startPromotionScheduler();
-  })
-  .catch((error) => {
-    logger.error('MongoDB connection error:', error);
-    process.exit(1);
-  });
+// Connect to MongoDB with retry logic
+const connectWithRetry = (retries = 5, delay = 5000): void => {
+  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/dynaro')
+    .then(() => {
+      logger.info('Connected to MongoDB');
+      startPromotionScheduler();
+    })
+    .catch((error) => {
+      logger.error(`MongoDB connection error (retries left: ${retries}):`, error.message);
+      if (retries > 0) {
+        logger.info(`Retrying MongoDB connection in ${delay / 1000}s...`);
+        setTimeout(() => connectWithRetry(retries - 1, delay), delay);
+      } else {
+        logger.error('MongoDB connection failed after all retries. Server will continue without DB.');
+      }
+    });
+};
+connectWithRetry();
 
 // Middleware
 app.use(helmet());
