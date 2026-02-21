@@ -66,7 +66,6 @@ jobs:
             --platform managed \
             --allow-unauthenticated \
             --set-env-vars NODE_ENV=production \
-            --set-env-vars PORT=4000 \
             --set-env-vars MONGODB_URI=${{ secrets.PROD_MONGODB_URI }} \
             --set-env-vars JWT_SECRET=${{ secrets.PROD_JWT_SECRET }} \
             --set-env-vars REDIS_URL=${{ secrets.PROD_REDIS_URL }} \
