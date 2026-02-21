@@ -1,0 +1,76 @@
+name: Build & Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: gcr.io
+  IMAGE_NAME: dynaro-backend
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: us-central1
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker gcr.io
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t $REGISTRY/$PROJECT_ID/$IMAGE_NAME:$GITHUB_SHA \
+            -t $REGISTRY/$PROJECT_ID/$IMAGE_NAME:latest \
+            ./backend
+
+      - name: Push to Google Container Registry
+        run: |
+          docker push $REGISTRY/$PROJECT_ID/$IMAGE_NAME:$GITHUB_SHA
+          docker push $REGISTRY/$PROJECT_ID/$IMAGE_NAME:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy $IMAGE_NAME \
+            --image $REGISTRY/$PROJECT_ID/$IMAGE_NAME:$GITHUB_SHA \
+            --region $GCP_REGION \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars NODE_ENV=production \
+            --set-env-vars PORT=4000 \
+            --set-env-vars MONGODB_URI=${{ secrets.PROD_MONGODB_URI }} \
+            --set-env-vars JWT_SECRET=${{ secrets.PROD_JWT_SECRET }} \
+            --set-env-vars REDIS_URL=${{ secrets.PROD_REDIS_URL }} \
+            --set-env-vars CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }} \
+            --set-env-vars CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
+            --set-env-vars CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \
+            --memory 512Mi \
+            --cpu 1 \
+            --timeout 3600s \
+            --max-instances 10 \
+            --min-instances 1 \
+            --quiet
+
+      - name: Output Cloud Run URL
+        run: |
+          echo "Deployment successful!"
+          gcloud run services describe $IMAGE_NAME --region $GCP_REGION --format='value(status.url)'
