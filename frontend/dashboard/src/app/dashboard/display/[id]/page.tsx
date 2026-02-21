@@ -235,6 +235,7 @@ function SlideEditor({ slide, allItems, categories, onSave, onClose, isSaving }:
               itemTags={itemTags}
               selectedField={selectedField}
               onSelectField={setSelectedField}
+              onRemoveItem={(itemId) => setSelectedIds((prev) => prev.filter((x) => x !== itemId))}
             />
           </div>
         </div>

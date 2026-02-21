@@ -93,6 +93,7 @@ function MainMock({
   itemTags = {},
   selectedField,
   onSelectField,
+  onRemoveItem,
 }: {
   layout: ILayoutMain;
   selected: boolean;
@@ -104,6 +105,7 @@ function MainMock({
   itemTags?: Record<string, IItemFieldTags>;
   selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
   onSelectField?: (field: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null) => void;
+  onRemoveItem?: (itemId: string) => void;
 }) {
   const { columns, rows } = layout;
   const capacity = columns * rows;
@@ -148,21 +150,35 @@ function MainMock({
         };
 
         return (
-          <MenuItemCard
-            key={i}
-            item={item}
-            index={i}
-            showCategory={layout.show_category_label}
-            fieldColors={perColor}
-            fieldSizes={perSize}
-            fieldTags={perTag}
-            resolvedSizes={resolvedSizes}
-            isEditing={false}
-            selectedField={selectedField}
-            onCategoryClick={() => item && handleFieldClick(item._id, 'category')}
-            onNameClick={() => item && handleFieldClick(item._id, 'name')}
-            onPriceClick={() => item && handleFieldClick(item._id, 'price')}
-          />
+          <div key={i} style={{ position: 'relative' }} className="group">
+            <MenuItemCard
+              item={item}
+              index={i}
+              showCategory={layout.show_category_label}
+              fieldColors={perColor}
+              fieldSizes={perSize}
+              fieldTags={perTag}
+              resolvedSizes={resolvedSizes}
+              isEditing={false}
+              selectedField={selectedField}
+              onCategoryClick={() => item && handleFieldClick(item._id, 'category')}
+              onNameClick={() => item && handleFieldClick(item._id, 'name')}
+              onPriceClick={() => item && handleFieldClick(item._id, 'price')}
+            />
+            {item && onRemoveItem && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onRemoveItem(item._id); }}
+                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ background: 'rgba(220,38,38,0.85)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20, backdropFilter: 'blur(2px)' }}
+                title="Remove from slide"
+              >
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                  <path d="M1 1l6 6M7 1L1 7" stroke="white" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+              </button>
+            )}
+          </div>
         );
       })}
       {selected && (
@@ -254,6 +270,7 @@ export interface SlideCanvasProps {
   itemTags?: Record<string, IItemFieldTags>;
   selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
   onSelectField?: (field: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null) => void;
+  onRemoveItem?: (itemId: string) => void;
 }
 
 export function SlideCanvas({
@@ -266,6 +283,7 @@ export function SlideCanvas({
   itemTags,
   selectedField,
   onSelectField,
+  onRemoveItem,
 }: SlideCanvasProps) {
   const bg = BG_THEMES[layout.bg_theme ?? 'dark'].gradient;
 
@@ -292,6 +310,7 @@ export function SlideCanvas({
         itemTags={itemTags}
         selectedField={selectedField}
         onSelectField={onSelectField}
+        onRemoveItem={onRemoveItem}
       />
       {layout.banner.visible && layout.banner.position === 'bottom' && (
         <BannerMock selected={selectedZone === 'banner'} onSelect={() => onSelectZone('banner')} />
