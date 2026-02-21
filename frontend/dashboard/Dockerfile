@@ -14,6 +14,10 @@ COPY dashboard/package.json dashboard/package-lock.json ./dashboard/
 WORKDIR /app/dashboard
 RUN npm ci
 
+# Symlink shared/node_modules -> dashboard/node_modules
+# so TypeScript can resolve imports (e.g. 'react') from within shared/ files
+RUN ln -s /app/dashboard/node_modules /app/shared/node_modules
+
 # Copy dashboard source
 COPY dashboard/ ./
 
