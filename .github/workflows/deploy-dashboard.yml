@@ -1,4 +1,4 @@
-name: Deploy Dashboard to Vercel
+name: Deploy Dashboard to Cloud Run
 # Updated: 2026-02-21
 
 on:
@@ -10,42 +10,79 @@ on:
       - '.github/workflows/deploy-dashboard.yml'
   workflow_dispatch:
 
+env:
+  REGISTRY: us-central1-docker.pkg.dev
+  REPOSITORY: dynaro-dashboard
+  IMAGE_NAME: dynaro-dashboard
+  GCP_REGION: us-central1
+
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: ${{ steps.deploy.outputs.url }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: frontend/dashboard/package-lock.json
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
 
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: dynrow
 
-      - name: Pull Vercel environment
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: frontend/dashboard
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-      - name: Build project
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: frontend/dashboard
+      - name: Create Artifact Registry repository (if not exists)
+        run: |
+          gcloud artifacts repositories describe dynaro-dashboard \
+            --location=us-central1 --project=dynrow 2>/dev/null || \
+          gcloud artifacts repositories create dynaro-dashboard \
+            --repository-format=docker \
+            --location=us-central1 \
+            --project=dynrow \
+            --description="Dynaro Dashboard frontend"
+
+      - name: Build Docker image
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           NEXT_PUBLIC_DISPLAY_URL: ${{ secrets.NEXT_PUBLIC_DISPLAY_URL }}
-
-      - name: Deploy to Vercel
-        id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
-          echo "url=$URL" >> $GITHUB_OUTPUT
-          echo "✅ Deployed to: $URL"
-        working-directory: frontend/dashboard
+          docker build \
+            --build-arg NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL}" \
+            --build-arg NEXT_PUBLIC_DISPLAY_URL="${NEXT_PUBLIC_DISPLAY_URL}" \
+            -t us-central1-docker.pkg.dev/dynrow/dynaro-dashboard/dynaro-dashboard:${{ github.sha }} \
+            -t us-central1-docker.pkg.dev/dynrow/dynaro-dashboard/dynaro-dashboard:latest \
+            ./frontend/dashboard
+
+      - name: Push to Artifact Registry
+        run: |
+          docker push us-central1-docker.pkg.dev/dynrow/dynaro-dashboard/dynaro-dashboard:${{ github.sha }}
+          docker push us-central1-docker.pkg.dev/dynrow/dynaro-dashboard/dynaro-dashboard:latest
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy dynaro-dashboard \
+            --image us-central1-docker.pkg.dev/dynrow/dynaro-dashboard/dynaro-dashboard:${{ github.sha }} \
+            --region us-central1 \
+            --platform managed \
+            --allow-unauthenticated \
+            --set-env-vars "NODE_ENV=production" \
+            --memory 512Mi \
+            --cpu 1 \
+            --timeout 3600s \
+            --max-instances 10 \
+            --min-instances 0 \
+            --project=dynrow \
+            --quiet
+
+      - name: Output Cloud Run URL
+        run: |
+          echo "✅ Dashboard deployed!"
+          gcloud run services describe dynaro-dashboard --region us-central1 --format='value(status.url)' --project=dynrow
+
