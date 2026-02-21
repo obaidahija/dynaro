@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (including dev for TypeScript compilation)
+RUN npm ci
 
 # Copy source code
 COPY src ./src
@@ -15,6 +15,9 @@ COPY tsconfig.json ./
 
 # Build TypeScript
 RUN npm run build
+
+# Remove dev dependencies (keep only production)
+RUN npm prune --production
 
 # Runtime stage
 FROM node:18-alpine
