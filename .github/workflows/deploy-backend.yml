@@ -1,4 +1,5 @@
 name: Build & Deploy Backend to Cloud Run
+# Updated: 2026-02-21 - WIF provider attribute condition fixed
 
 on:
   push:
