@@ -60,9 +60,10 @@ jobs:
           docker build \
             --build-arg NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL}" \
             --build-arg NEXT_PUBLIC_DISPLAY_URL="${NEXT_PUBLIC_DISPLAY_URL}" \
+            -f ./frontend/dashboard/Dockerfile \
             -t us-central1-docker.pkg.dev/dynrow/dynaro-dashboard/dynaro-dashboard:${{ github.sha }} \
             -t us-central1-docker.pkg.dev/dynrow/dynaro-dashboard/dynaro-dashboard:latest \
-            ./frontend/dashboard
+            ./frontend
 
       - name: Push to Artifact Registry
         run: |

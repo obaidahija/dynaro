@@ -1,16 +1,21 @@
 # Stage 1: Build
+# Build context must be frontend/ (parent of dashboard/) so shared/ is accessible
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json ./
+# Copy shared package
+COPY shared/ ./shared/
 
-# Install all dependencies
+# Copy dashboard
+COPY dashboard/package.json dashboard/package-lock.json ./dashboard/
+
+# Install dashboard dependencies
+WORKDIR /app/dashboard
 RUN npm ci
 
-# Copy source
-COPY . .
+# Copy dashboard source
+COPY dashboard/ ./
 
 # Build args for NEXT_PUBLIC_ vars (must be available at build time)
 ARG NEXT_PUBLIC_API_URL
@@ -33,9 +38,9 @@ RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 
 # Copy standalone build output
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/dashboard/public ./public
 
 USER nextjs
 

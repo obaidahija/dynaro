@@ -632,7 +632,7 @@ export default function PromotionsPage() {
 
   const { data: menuItems = [] } = useQuery<MenuItemRef[]>({
     queryKey: ['menu-items-simple'],
-    queryFn: () => menuApi.getAll().then((r) => r.data.data),
+    queryFn: () => menuApi.getItems().then((r) => r.data.data),
   });
 
   // ── Mutations ─────────────────────────────────────────────────────────────────

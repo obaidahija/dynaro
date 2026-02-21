@@ -1,0 +1,13 @@
+dashboard/node_modules/
+dashboard/.next/
+dashboard/npm-debug.log*
+dashboard/.DS_Store
+dashboard/*.log
+dashboard/.env
+dashboard/.env.local
+dashboard/.env.development
+dashboard/.env.production
+shared/node_modules/
+.git
+.gitignore
+README.md
