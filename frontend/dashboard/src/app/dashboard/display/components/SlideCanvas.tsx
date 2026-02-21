@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MenuItemCard } from '@shared/components/MenuItemCard';
 import { DisplayHeader } from '@shared/components/DisplayHeader';
 import {
@@ -94,6 +94,7 @@ function MainMock({
   selectedField,
   onSelectField,
   onRemoveItem,
+  onReorderItems,
 }: {
   layout: ILayoutMain;
   selected: boolean;
@@ -106,9 +107,13 @@ function MainMock({
   selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
   onSelectField?: (field: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null) => void;
   onRemoveItem?: (itemId: string) => void;
+  onReorderItems?: (newItems: IMenuItem[]) => void;
 }) {
   const { columns, rows } = layout;
   const capacity = columns * rows;
+
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [overIdx, setOverIdx] = useState<number | null>(null);
 
   const handleFieldClick = (itemId: string, fieldType: 'category' | 'name' | 'price') => {
     onSelect();
@@ -150,7 +155,42 @@ function MainMock({
         };
 
         return (
-          <div key={i} style={{ position: 'relative' }} className="group">
+          <div
+            key={i}
+            className="group"
+            draggable={!!item}
+            onDragStart={(e) => {
+              if (!item) { e.preventDefault(); return; }
+              e.dataTransfer.effectAllowed = 'move';
+              setDragIdx(i);
+            }}
+            onDragOver={(e) => {
+              if (dragIdx === null || !item || dragIdx === i) return;
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+              if (overIdx !== i) setOverIdx(i);
+            }}
+            onDragLeave={() => setOverIdx(null)}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (dragIdx !== null && dragIdx !== i && item) {
+                const newItems = [...items];
+                const [moved] = newItems.splice(dragIdx, 1);
+                newItems.splice(i, 0, moved);
+                onReorderItems?.(newItems);
+              }
+              setDragIdx(null);
+              setOverIdx(null);
+            }}
+            onDragEnd={() => { setDragIdx(null); setOverIdx(null); }}
+            style={{
+              position: 'relative',
+              opacity: dragIdx === i ? 0.35 : 1,
+              outline: overIdx === i && dragIdx !== i ? '2px solid #60a5fa' : '2px solid transparent',
+              borderRadius: '16px',
+              transition: 'outline-color 0.1s, opacity 0.15s',
+            }}
+          >
             <MenuItemCard
               item={item}
               index={i}
@@ -165,6 +205,19 @@ function MainMock({
               onNameClick={() => item && handleFieldClick(item._id, 'name')}
               onPriceClick={() => item && handleFieldClick(item._id, 'price')}
             />
+            {item && (
+              <button
+                type="button"
+                className="absolute opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+                style={{ top: '-9px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(15,25,45,0.90)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '6px', width: '32px', height: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, backdropFilter: 'blur(4px)', padding: 0 }}
+                title="Drag to reorder"
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <svg width="16" height="6" viewBox="0 0 16 6" fill="none">
+                  <path d="M2 1h12M2 5h12" stroke="rgba(255,255,255,0.7)" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              </button>
+            )}
             {item && onRemoveItem && (
               <button
                 type="button"
@@ -271,6 +324,7 @@ export interface SlideCanvasProps {
   selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
   onSelectField?: (field: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null) => void;
   onRemoveItem?: (itemId: string) => void;
+  onReorderItems?: (newItems: IMenuItem[]) => void;
 }
 
 export function SlideCanvas({
@@ -284,6 +338,7 @@ export function SlideCanvas({
   selectedField,
   onSelectField,
   onRemoveItem,
+  onReorderItems,
 }: SlideCanvasProps) {
   const bg = BG_THEMES[layout.bg_theme ?? 'dark'].gradient;
 
@@ -311,6 +366,7 @@ export function SlideCanvas({
         selectedField={selectedField}
         onSelectField={onSelectField}
         onRemoveItem={onRemoveItem}
+        onReorderItems={onReorderItems}
       />
       {layout.banner.visible && layout.banner.position === 'bottom' && (
         <BannerMock selected={selectedZone === 'banner'} onSelect={() => onSelectZone('banner')} />
