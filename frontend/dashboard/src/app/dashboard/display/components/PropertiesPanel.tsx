@@ -39,6 +39,7 @@ export interface PropertiesPanelProps {
   onChangeFieldSize?: (field: 'category' | 'name' | 'price', size: string) => void;
   onChangeFieldTag?: (field: 'category' | 'name' | 'price', tag: boolean) => void;
   onChangeImagePosition?: (position: string) => void;
+  onChangeImageScale?: (scale: number) => void;
 }
 
 export function PropertiesPanel({
@@ -54,6 +55,7 @@ export function PropertiesPanel({
   onChangeFieldSize,
   onChangeFieldTag,
   onChangeImagePosition,
+  onChangeImageScale,
 }: PropertiesPanelProps) {
   const ph = (p: Partial<ILayoutHeader>) => patchLayout((l) => ({ ...l, header: { ...l.header, ...p } }));
   const pm = (p: Partial<ILayoutMain>) => patchLayout((l) => ({ ...l, main: { ...l.main, ...p } }));
@@ -150,56 +152,132 @@ export function PropertiesPanel({
 
           {/* Image position picker — shown when image area is clicked */}
           {selectedField?.fieldType === 'image' && (() => {
-            const currentPos = itemImages[selectedField.itemId]?.position ?? 'center center';
-            const positions = [
-              ['left top',    'center top',    'right top'   ],
-              ['left center', 'center center', 'right center'],
-              ['left bottom', 'center bottom', 'right bottom'],
-            ] as const;
-            const icons = [['↖','↑','↗'],['←','·','→'],['↙','↓','↘']];
+            const rawPos = itemImages[selectedField.itemId]?.position ?? '50% 50%';
+            const scaleVal = itemImages[selectedField.itemId]?.scale ?? 1;
+
+            // Parse "X% Y%" or CSS keywords into 0-100 numbers
+            const parsePos = (s: string): [number, number] => {
+              const keywordX: Record<string, number> = { left: 0, center: 50, right: 100 };
+              const keywordY: Record<string, number> = { top: 0, center: 50, bottom: 100 };
+              const parts = s.trim().split(/\s+/);
+              const xStr = parts[0] ?? '50%';
+              const yStr = parts[1] ?? '50%';
+              const x = xStr.endsWith('%') ? parseFloat(xStr) : (keywordX[xStr] ?? 50);
+              const y = yStr.endsWith('%') ? parseFloat(yStr) : (keywordY[yStr] ?? 50);
+              return [Math.round(x), Math.round(y)];
+            };
+
+            const [xVal, yVal] = parsePos(rawPos);
+
+            const emit = (x: number, y: number) => onChangeImagePosition?.(`${x}% ${y}%`);
+
+            const labelX = xVal === 0 ? 'Left' : xVal === 100 ? 'Right' : xVal === 50 ? 'Center' : `${xVal}%`;
+            const labelY = yVal === 0 ? 'Top' : yVal === 100 ? 'Bottom' : yVal === 50 ? 'Center' : `${yVal}%`;
+
             return (
               <div className="border-t pt-4">
                 <div className="text-sm text-gray-600 mb-3 font-semibold">Image Position</div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-400 mb-3">Choose which part of the image is centered in the card</p>
+                <div className="bg-gray-50 rounded-lg p-3 space-y-4">
+                  {/* Visual focal-point preview */}
                   <div
                     style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(3, 1fr)',
-                      gap: '4px',
+                      position: 'relative',
+                      width: '100%',
+                      paddingBottom: '60%',
+                      background: 'linear-gradient(135deg,#c7d2fe,#e0e7ff)',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      border: '1px solid #e5e7eb',
                     }}
                   >
-                    {positions.map((row, ri) =>
-                      row.map((pos, ci) => {
-                        const active = currentPos === pos;
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 9px,rgba(99,102,241,0.15) 9px,rgba(99,102,241,0.15) 10px),repeating-linear-gradient(90deg,transparent,transparent 9px,rgba(99,102,241,0.15) 9px,rgba(99,102,241,0.15) 10px)',
+                    }} />
+                    {/* Focal dot */}
+                    <div style={{
+                      position: 'absolute',
+                      left: `${xVal}%`,
+                      top:  `${yVal}%`,
+                      transform: 'translate(-50%, -50%)',
+                      width: '14px', height: '14px',
+                      borderRadius: '50%',
+                      background: '#2563eb',
+                      border: '2px solid #fff',
+                      boxShadow: '0 0 0 2px #2563eb',
+                      pointerEvents: 'none',
+                    }} />
+                  </div>
+
+                  {/* Vertical slider */}
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs font-semibold text-gray-600">Vertical</span>
+                      <span className="text-xs text-blue-600 font-bold">{labelY}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 w-6 text-center">↑</span>
+                      <input
+                        type="range" min={0} max={100} value={yVal}
+                        onChange={(e) => emit(xVal, Number(e.target.value))}
+                        className="flex-1 accent-blue-600"
+                      />
+                      <span className="text-xs text-gray-400 w-6 text-center">↓</span>
+                    </div>
+                  </div>
+
+                  {/* Horizontal slider */}
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs font-semibold text-gray-600">Horizontal</span>
+                      <span className="text-xs text-blue-600 font-bold">{labelX}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 w-6 text-center">←</span>
+                      <input
+                        type="range" min={0} max={100} value={xVal}
+                        onChange={(e) => emit(Number(e.target.value), yVal)}
+                        className="flex-1 accent-blue-600"
+                      />
+                      <span className="text-xs text-gray-400 w-6 text-center">→</span>
+                    </div>
+                  </div>
+
+                  {/* Zoom slider */}
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs font-semibold text-gray-600">Zoom</span>
+                      <span className="text-xs text-blue-600 font-bold">{scaleVal === 1 ? 'Normal' : `${scaleVal.toFixed(1)}×`}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 w-6 text-center">🔍</span>
+                      <input
+                        type="range" min={100} max={300} step={5} value={Math.round(scaleVal * 100)}
+                        onChange={(e) => onChangeImageScale?.(Number(e.target.value) / 100)}
+                        className="flex-1 accent-blue-600"
+                      />
+                      <span className="text-xs text-gray-400 w-6 text-center">🔎</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">Zoom in to get more pan range</p>
+                  </div>
+
+                  {/* Quick presets */}
+                  <div>
+                    <span className="text-xs text-gray-500 font-semibold block mb-1.5">Quick presets</span>
+                    <div className="grid grid-cols-3 gap-1">
+                      {([['Top', 50, 0], ['Center', 50, 50], ['Bottom', 50, 100],
+                         ['Left', 0, 50], ['Right', 100, 50],
+                         ['Top-L', 0, 0], ['Top-R', 100, 0], ['Bot-L', 0, 100], ['Bot-R', 100, 100]] as [string, number, number][]).map(([label, px, py]) => {
+                        const active = xVal === px && yVal === py;
                         return (
-                          <button
-                            key={pos}
-                            type="button"
-                            title={pos}
-                            onClick={() => onChangeImagePosition?.(pos)}
-                            style={{
-                              aspectRatio: '1',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              borderRadius: '6px',
-                              border: active ? '2px solid #2563eb' : '1px solid #e5e7eb',
-                              background: active ? '#dbeafe' : '#fff',
-                              fontSize: '14px',
-                              cursor: 'pointer',
-                              fontWeight: active ? 900 : 400,
-                              color: active ? '#1d4ed8' : '#6b7280',
-                              transition: 'all 0.1s',
-                            }}
-                          >
-                            {icons[ri][ci]}
+                          <button key={label} type="button" onClick={() => emit(px, py)}
+                            className={`text-xs py-1 rounded border transition-colors font-medium ${active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200 hover:border-blue-300'}`}>
+                            {label}
                           </button>
                         );
-                      })
-                    )}
+                      })}
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-400 mt-2 text-center capitalize">{currentPos.replace('center center', 'center')}</p>
                 </div>
               </div>
             );

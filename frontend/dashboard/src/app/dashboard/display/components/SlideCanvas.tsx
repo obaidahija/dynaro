@@ -91,6 +91,7 @@ function MainMock({
   itemColors = {},
   itemSizes = {},
   itemTags = {},
+  itemImages = {},
   selectedField,
   onSelectField,
   onRemoveItem,

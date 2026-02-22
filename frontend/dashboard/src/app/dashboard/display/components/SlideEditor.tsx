@@ -134,6 +134,18 @@ export function SlideEditor({ slide, allItems, categories, onSave, onClose, isSa
     }));
   }, [selectedField]);
 
+  // Handle image scale (zoom) change - apply to the selected item
+  const handleImageScaleChange = useCallback((scale: number) => {
+    if (!selectedField) return;
+    setItemImages((prev) => ({
+      ...prev,
+      [selectedField.itemId]: {
+        ...(prev[selectedField.itemId] ?? {}),
+        scale,
+      },
+    }));
+  }, [selectedField]);
+
   function toggle(id: string) {
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   }
@@ -244,6 +256,7 @@ export function SlideEditor({ slide, allItems, categories, onSave, onClose, isSa
             onChangeFieldSize={handleFieldSizeChange}
             onChangeFieldTag={handleFieldTagChange}
             onChangeImagePosition={handleImagePositionChange}
+            onChangeImageScale={handleImageScaleChange}
           />
         </div>
       </div>

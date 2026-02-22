@@ -161,6 +161,9 @@ export function MenuItemCard({
             style={{
               width: '100%', height: '100%', objectFit: 'cover', display: 'block',
               objectPosition: fieldImage?.position ?? 'center center',
+              transform: `scale(${fieldImage?.scale ?? 1})`,
+              transformOrigin: fieldImage?.position ?? 'center center',
+              transition: 'transform 0.2s ease, object-position 0.2s ease',
             }}
           />
         ) : (
