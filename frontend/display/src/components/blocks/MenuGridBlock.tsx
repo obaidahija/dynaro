@@ -1,6 +1,6 @@
 import { MenuItemCard } from '@shared/components/MenuItemCard';
 import { DISPLAY_CAT_SIZES, DISPLAY_NAME_SIZES, DISPLAY_PRICE_SIZES } from '@shared/display-types';
-import type { IItemFieldColors, IItemFieldSizes, IItemFieldTags } from '@shared/display-types';
+import type { IItemFieldColors, IItemFieldSizes, IItemFieldTags, IItemFieldImage } from '@shared/display-types';
 import type { ILayoutMain, DisplayMenuItem, DisplayPromotion } from '../templates/types';
 
 // ── MenuGridBlock ─────────────────────────────────────────────────────────────
@@ -16,11 +16,12 @@ interface MenuGridBlockProps {
   itemColors?: Record<string, IItemFieldColors>;
   itemSizes?:  Record<string, IItemFieldSizes>;
   itemTags?:   Record<string, IItemFieldTags>;
+  itemImages?: Record<string, IItemFieldImage>;
 }
 
 export function MenuGridBlock({
   layout, items, promotions, activePage, gridVisible, gridKey, hasBanner,
-  itemColors = {}, itemSizes = {}, itemTags = {},
+  itemColors = {}, itemSizes = {}, itemTags = {}, itemImages = {},
 }: MenuGridBlockProps) {
   const COLS = layout.columns ?? 3;
   const ROWS = layout.rows ?? 2;
@@ -72,6 +73,7 @@ export function MenuGridBlock({
                 fieldColors={itemColors[item._id]}
                 fieldSizes={perSizes}
                 fieldTags={itemTags[item._id]}
+                fieldImage={itemImages[item._id]}
                 resolvedSizes={resolvedSizes}
                 isEditing={false}
                 animationDelay={0}

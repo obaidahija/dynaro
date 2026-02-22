@@ -45,6 +45,12 @@ export interface IItemFieldTags {
   price?: boolean;
 }
 
+export interface IItemFieldImage {
+  /** CSS object-position value — controls which part of the image is visible.
+   *  Valid values: 'center center', 'left top', 'right bottom', etc. */
+  position?: string;
+}
+
 /** Size token → CSS value maps for the live display (rem-based) */
 export const DISPLAY_CAT_SIZES: Record<string, string>   = { xs: '0.62rem', sm: '0.75rem', md: '0.88rem', lg: '1.05rem' };
 export const DISPLAY_NAME_SIZES: Record<string, string>  = { xs: '0.72rem', sm: '0.85rem', md: '1.0rem',  lg: '1.2rem'  };

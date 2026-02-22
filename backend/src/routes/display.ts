@@ -55,9 +55,10 @@ async function buildResponse(storeId: string, playlistId: string | undefined, re
         duration_sec: slide.duration_sec ?? 9,
         layout: slideLayout,
         items: slideItems,
-        item_colors: slide.item_colors ?? {},
-        item_sizes:  slide.item_sizes  ?? {},
-        item_tags:   slide.item_tags   ?? {},
+        item_colors:  slide.item_colors  ?? {},
+        item_sizes:   slide.item_sizes   ?? {},
+        item_tags:    slide.item_tags    ?? {},
+        item_images:  slide.item_images  ?? {},
       };
     });
   }

@@ -10,6 +10,7 @@ export interface IPlaylistSlide {
   item_colors?: Record<string, { category?: string; name?: string; price?: string }>;
   item_sizes?:  Record<string, { category?: string; name?: string; price?: string }>;
   item_tags?:   Record<string, { category?: boolean; name?: boolean; price?: boolean }>;
+  item_images?: Record<string, { position?: string }>;
 }
 
 export interface IPlaylist extends Document {
@@ -28,6 +29,7 @@ const playlistSlideSchema = new Schema<IPlaylistSlide>({
   item_colors:  { type: Schema.Types.Mixed, default: () => ({}) },
   item_sizes:   { type: Schema.Types.Mixed, default: () => ({}) },
   item_tags:    { type: Schema.Types.Mixed, default: () => ({}) },
+  item_images:  { type: Schema.Types.Mixed, default: () => ({}) },
 }, { _id: true });
 
 const playlistSchema = new Schema<IPlaylist>({

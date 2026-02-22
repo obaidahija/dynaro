@@ -1,4 +1,4 @@
-import type { IItemFieldTags } from '@shared/display-types';
+import type { IItemFieldTags, IItemFieldImage } from '@shared/display-types';
 
 /**
  * ── Template Placeholder Contract ──────────────────────────────────────────
@@ -143,6 +143,7 @@ export interface DisplayPlaylistSlide {
   item_colors?: Record<string, IItemFieldColors>;
   item_sizes?:  Record<string, IItemFieldSizes>;
   item_tags?:   Record<string, IItemFieldTags>;
+  item_images?: Record<string, IItemFieldImage>;
 }
 
 /** Full payload every template receives */

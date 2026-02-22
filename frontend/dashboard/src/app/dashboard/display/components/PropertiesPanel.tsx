@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { ILayoutConfig, ILayoutHeader, ILayoutMain, ILayoutBanner, IItemFieldColors, IItemFieldSizes, IItemFieldTags } from '@shared/display-types';
+import type { ILayoutConfig, ILayoutHeader, ILayoutMain, ILayoutBanner, IItemFieldColors, IItemFieldSizes, IItemFieldTags, IItemFieldImage } from '@shared/display-types';
 import { BG_THEMES } from '@shared/display-types';
 
 type Zone = 'header' | 'main' | 'banner' | null;
@@ -30,13 +30,15 @@ export interface PropertiesPanelProps {
   layout: ILayoutConfig;
   selectedZone: Zone;
   patchLayout: (updater: (l: ILayoutConfig) => ILayoutConfig) => void;
-  selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
+  selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' | 'image' } | null;
   itemColors?: Record<string, IItemFieldColors>;
   itemSizes?: Record<string, IItemFieldSizes>;
   itemTags?: Record<string, IItemFieldTags>;
+  itemImages?: Record<string, IItemFieldImage>;
   onChangeFieldColor?: (field: 'category' | 'name' | 'price', color: string) => void;
   onChangeFieldSize?: (field: 'category' | 'name' | 'price', size: string) => void;
   onChangeFieldTag?: (field: 'category' | 'name' | 'price', tag: boolean) => void;
+  onChangeImagePosition?: (position: string) => void;
 }
 
 export function PropertiesPanel({
@@ -47,9 +49,11 @@ export function PropertiesPanel({
   itemColors = {},
   itemSizes = {},
   itemTags = {},
+  itemImages = {},
   onChangeFieldColor,
   onChangeFieldSize,
   onChangeFieldTag,
+  onChangeImagePosition,
 }: PropertiesPanelProps) {
   const ph = (p: Partial<ILayoutHeader>) => patchLayout((l) => ({ ...l, header: { ...l.header, ...p } }));
   const pm = (p: Partial<ILayoutMain>) => patchLayout((l) => ({ ...l, main: { ...l.main, ...p } }));
@@ -102,8 +106,8 @@ export function PropertiesPanel({
           <div><div className="text-sm text-gray-600 mb-2">Rows</div><NumPills options={[1, 2, 3]} value={m.rows} onChange={(v) => pm({ rows: v })} /></div>
           <div className="flex items-center justify-between border-t pt-3"><span className="text-sm text-gray-600">Category label</span><MiniToggle value={m.show_category_label} onChange={(v) => pm({ show_category_label: v })} /></div>
 
-          {/* Unified field controls - shown when a field is selected on canvas */}
-          {selectedField && (
+          {/* Field controls — shown when a field is selected on canvas */}
+          {selectedField && selectedField.fieldType !== 'image' && (
             <div className="border-t pt-4">
               <div className="text-sm text-gray-600 mb-3 font-semibold">
                 {currentFieldType === 'category' ? 'Category' : currentFieldType === 'name' ? 'Name' : 'Price'} Styling
@@ -143,6 +147,63 @@ export function PropertiesPanel({
               </div>
             </div>
           )}
+
+          {/* Image position picker — shown when image area is clicked */}
+          {selectedField?.fieldType === 'image' && (() => {
+            const currentPos = itemImages[selectedField.itemId]?.position ?? 'center center';
+            const positions = [
+              ['left top',    'center top',    'right top'   ],
+              ['left center', 'center center', 'right center'],
+              ['left bottom', 'center bottom', 'right bottom'],
+            ] as const;
+            const icons = [['↖','↑','↗'],['←','·','→'],['↙','↓','↘']];
+            return (
+              <div className="border-t pt-4">
+                <div className="text-sm text-gray-600 mb-3 font-semibold">Image Position</div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs text-gray-400 mb-3">Choose which part of the image is centered in the card</p>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, 1fr)',
+                      gap: '4px',
+                    }}
+                  >
+                    {positions.map((row, ri) =>
+                      row.map((pos, ci) => {
+                        const active = currentPos === pos;
+                        return (
+                          <button
+                            key={pos}
+                            type="button"
+                            title={pos}
+                            onClick={() => onChangeImagePosition?.(pos)}
+                            style={{
+                              aspectRatio: '1',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: '6px',
+                              border: active ? '2px solid #2563eb' : '1px solid #e5e7eb',
+                              background: active ? '#dbeafe' : '#fff',
+                              fontSize: '14px',
+                              cursor: 'pointer',
+                              fontWeight: active ? 900 : 400,
+                              color: active ? '#1d4ed8' : '#6b7280',
+                              transition: 'all 0.1s',
+                            }}
+                          >
+                            {icons[ri][ci]}
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2 text-center capitalize">{currentPos.replace('center center', 'center')}</p>
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="border-t pt-3 text-xs text-gray-400 leading-relaxed">Click on category, name, or price text on items to edit styling for all items</div>
         </div>

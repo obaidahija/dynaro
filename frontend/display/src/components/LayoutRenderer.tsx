@@ -183,6 +183,7 @@ export function LayoutRenderer({ data, layout: layoutOverride }: LayoutRendererP
       itemColors={activeSlide?.item_colors}
       itemSizes={activeSlide?.item_sizes}
       itemTags={activeSlide?.item_tags}
+      itemImages={activeSlide?.item_images}
     />
   );
 
