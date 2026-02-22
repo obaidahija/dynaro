@@ -139,6 +139,9 @@ export function MenuItemCard({
           <img
             src={transformCloudinaryUrl(item.image_url)}
             alt={item.name}
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         ) : (

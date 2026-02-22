@@ -74,7 +74,7 @@ export function MenuGridBlock({
                 fieldTags={itemTags[item._id]}
                 resolvedSizes={resolvedSizes}
                 isEditing={false}
-                animationDelay={idx * 25}
+                animationDelay={0}
               />
             );
           })}

@@ -36,6 +36,20 @@ interface LayoutRendererProps {
   layout?: ILayoutConfig;
 }
 
+/** Kick off browser image downloads for a list of items so they are cached before they appear. */
+function preloadImages(items: DisplayMenuItem[]): void {
+  items.forEach((item) => {
+    if (!item.image_url) return;
+    let src = item.image_url;
+    if (src.includes('res.cloudinary.com')) {
+      src = src.replace(/\.(heic|heif|tiff?|bmp|raw)$/i, '');
+      if (!src.includes('/upload/f_auto')) src = src.replace('/upload/', '/upload/f_auto,q_auto/');
+    }
+    const img = new window.Image();
+    img.src = src;
+  });
+}
+
 export function LayoutRenderer({ data, layout: layoutOverride }: LayoutRendererProps) {
   const { store, menuItems, promotions, playlist } = data;
   const primary = store.branding.primary_color || '#3B82F6';
@@ -101,6 +115,25 @@ export function LayoutRenderer({ data, layout: layoutOverride }: LayoutRendererP
   }, [hasPlaylist, globalPageCount, transitionGlobal]);
 
   const activePage = hasPlaylist ? 0 : globalPage;
+
+  // ── Preload images for the next page/slide ────────────────────────────────
+  useEffect(() => {
+    // Re-calculate capacity here to avoid cross-closure staleness
+    const cols = layout.main.columns ?? 3;
+    const rows = layout.main.rows ?? 2;
+    const cap  = cols * rows;
+
+    if (hasPlaylist && playlist && playlist.length > 1) {
+      const nextIdx   = (playlistIndex + 1) % playlist.length;
+      const nextItems = playlist[nextIdx].items.slice(0, cap);
+      preloadImages(nextItems);
+    } else if (!hasPlaylist && globalPageCount > 1) {
+      const nextPage  = (globalPage + 1) % globalPageCount;
+      const nextItems = activeItems.slice(nextPage * cap, nextPage * cap + cap);
+      preloadImages(nextItems);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playlistIndex, globalPage]);
 
   // Active category label(s)
   const activeCat = useMemo(() => {
