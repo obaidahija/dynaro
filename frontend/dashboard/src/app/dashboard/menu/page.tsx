@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import { transformCloudinaryUrl } from '@/lib/cloudinary';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
@@ -157,7 +158,7 @@ function ItemModal({
             {previewImage && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={previewImage}
+                src={transformCloudinaryUrl(previewImage)}
                 alt="preview"
                 className="w-full h-40 object-cover rounded-xl border border-gray-200"
                 onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
@@ -337,7 +338,7 @@ function SortableCard({
       <div className="relative">
         {item.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.image_url} alt={item.name} className="w-full h-32 object-cover" />
+          <img src={transformCloudinaryUrl(item.image_url)} alt={item.name} className="w-full h-32 object-cover" />
         ) : (
           <div
             className="w-full h-32 flex items-center justify-center text-5xl font-black"
@@ -422,7 +423,7 @@ function OverlayCard({ item }: { item: MenuItem }) {
     >
       {item.image_url ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={item.image_url} alt={item.name} className="w-full h-32 object-cover" />
+        <img src={transformCloudinaryUrl(item.image_url)} alt={item.name} className="w-full h-32 object-cover" />
       ) : (
         <div
           className="w-full h-32 flex items-center justify-center text-5xl font-black"

@@ -11,6 +11,13 @@ function calcDiscounted(price: number, promo: CardPromotion): number {
     : Math.max(0, price - promo.discount_value);
 }
 
+function transformCloudinaryUrl(url: string): string {
+  if (!url.includes('res.cloudinary.com')) return url;
+  let transformed = url.replace(/\.(heic|heif|tiff?|bmp|raw)$/i, '');
+  transformed = transformed.replace('/upload/', '/upload/f_auto,q_auto/');
+  return transformed;
+}
+
 export interface CardItemData {
   _id: string;
   name: string;
@@ -130,7 +137,7 @@ export function MenuItemCard({
         {item?.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={item.image_url}
+            src={transformCloudinaryUrl(item.image_url)}
             alt={item.name}
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />

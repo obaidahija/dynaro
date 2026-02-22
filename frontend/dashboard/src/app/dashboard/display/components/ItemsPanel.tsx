@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { transformCloudinaryUrl } from '@/lib/cloudinary';
 
 interface IMenuItem {
   _id: string;
@@ -87,7 +88,7 @@ export function ItemsPanel({
               {item.image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={item.image_url}
+                  src={transformCloudinaryUrl(item.image_url)}
                   alt={item.name}
                   className="w-full h-32 rounded object-cover"
                 />
