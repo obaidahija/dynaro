@@ -45,14 +45,6 @@ export interface IItemFieldTags {
   price?: boolean;
 }
 
-export interface IItemFieldImage {
-  /** CSS object-position value — controls which part of the image is visible. */
-  position?: string;
-  /** Zoom multiplier applied on top of object-fit:cover. 1 = normal, 2 = 2× zoomed in.
-   *  More zoom = more overflow = wider pan range in both axes. */
-  scale?: number;
-}
-
 /** Size token → CSS value maps for the live display (rem-based) */
 export const DISPLAY_CAT_SIZES: Record<string, string>   = { xs: '0.62rem', sm: '0.75rem', md: '0.88rem', lg: '1.05rem' };
 export const DISPLAY_NAME_SIZES: Record<string, string>  = { xs: '0.72rem', sm: '0.85rem', md: '1.0rem',  lg: '1.2rem'  };

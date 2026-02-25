@@ -6,7 +6,7 @@ import {
   CheckIcon, ArrowLeftIcon,
 } from '@heroicons/react/24/outline';
 import {
-  ILayoutConfig, IItemFieldColors, IItemFieldSizes, IItemFieldTags, IItemFieldImage,
+  ILayoutConfig, IItemFieldColors, IItemFieldSizes, IItemFieldTags,
 } from '@shared/display-types';
 import { PropertiesPanel } from './PropertiesPanel';
 import { ItemsPanel } from './ItemsPanel';
@@ -29,7 +29,6 @@ interface IPlaylistSlide {
   item_colors?: Record<string, IItemFieldColors>;
   item_sizes?:  Record<string, IItemFieldSizes>;
   item_tags?:   Record<string, IItemFieldTags>;
-  item_images?: Record<string, IItemFieldImage>;
 }
 
 type Zone = 'header' | 'main' | 'banner' | null;
@@ -62,9 +61,8 @@ export function SlideEditor({ slide, allItems, categories, onSave, onClose, isSa
   const [itemColors, setItemColors] = useState<Record<string, IItemFieldColors>>(slide?.item_colors ?? {});
   const [itemSizes,  setItemSizes]  = useState<Record<string, IItemFieldSizes>>(slide?.item_sizes  ?? {});
   const [itemTags,   setItemTags]   = useState<Record<string, IItemFieldTags>>(slide?.item_tags    ?? {});
-  const [itemImages, setItemImages] = useState<Record<string, IItemFieldImage>>(slide?.item_images ?? {});
   const [selectedZone, setSelectedZone] = useState<Zone>('main');
-  const [selectedField, setSelectedField] = useState<{ itemId: string; fieldType: 'category' | 'name' | 'price' | 'image' } | null>(null);
+  const [selectedField, setSelectedField] = useState<{ itemId: string; fieldType: 'category' | 'name' | 'price' } | null>(null);
   const [catFilter, setCatFilter] = useState('all');
   const [orientation, setOrientation] = useState<'landscape' | 'portrait'>('landscape');
 
@@ -122,36 +120,12 @@ export function SlideEditor({ slide, allItems, categories, onSave, onClose, isSa
     }));
   }, [selectedField]);
 
-  // Handle image position change - apply to the selected item
-  const handleImagePositionChange = useCallback((position: string) => {
-    if (!selectedField) return;
-    setItemImages((prev) => ({
-      ...prev,
-      [selectedField.itemId]: {
-        ...(prev[selectedField.itemId] ?? {}),
-        position,
-      },
-    }));
-  }, [selectedField]);
-
-  // Handle image scale (zoom) change - apply to the selected item
-  const handleImageScaleChange = useCallback((scale: number) => {
-    if (!selectedField) return;
-    setItemImages((prev) => ({
-      ...prev,
-      [selectedField.itemId]: {
-        ...(prev[selectedField.itemId] ?? {}),
-        scale,
-      },
-    }));
-  }, [selectedField]);
-
   function toggle(id: string) {
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   }
 
   function submit() {
-    onSave({ _id: slide?._id, label, item_ids: selectedIds, duration_sec: duration, layout, item_colors: itemColors, item_sizes: itemSizes, item_tags: itemTags, item_images: itemImages });
+    onSave({ _id: slide?._id, label, item_ids: selectedIds, duration_sec: duration, layout, item_colors: itemColors, item_sizes: itemSizes, item_tags: itemTags });
   }
 
   return (
@@ -232,7 +206,6 @@ export function SlideEditor({ slide, allItems, categories, onSave, onClose, isSa
               itemColors={itemColors}
               itemSizes={itemSizes}
               itemTags={itemTags}
-              itemImages={itemImages}
               selectedField={selectedField}
               onSelectField={setSelectedField}
               onRemoveItem={(itemId) => setSelectedIds((prev) => prev.filter((x) => x !== itemId))}
@@ -251,12 +224,9 @@ export function SlideEditor({ slide, allItems, categories, onSave, onClose, isSa
             itemColors={itemColors}
             itemSizes={itemSizes}
             itemTags={itemTags}
-            itemImages={itemImages}
             onChangeFieldColor={handleFieldColorChange}
             onChangeFieldSize={handleFieldSizeChange}
             onChangeFieldTag={handleFieldTagChange}
-            onChangeImagePosition={handleImagePositionChange}
-            onChangeImageScale={handleImageScaleChange}
           />
         </div>
       </div>

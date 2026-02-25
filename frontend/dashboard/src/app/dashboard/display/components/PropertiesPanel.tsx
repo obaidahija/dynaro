@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { ILayoutConfig, ILayoutHeader, ILayoutMain, ILayoutBanner, IItemFieldColors, IItemFieldSizes, IItemFieldTags, IItemFieldImage } from '@shared/display-types';
+import type { ILayoutConfig, ILayoutHeader, ILayoutMain, ILayoutBanner, IItemFieldColors, IItemFieldSizes, IItemFieldTags } from '@shared/display-types';
 import { BG_THEMES } from '@shared/display-types';
 
 type Zone = 'header' | 'main' | 'banner' | null;
@@ -30,16 +30,13 @@ export interface PropertiesPanelProps {
   layout: ILayoutConfig;
   selectedZone: Zone;
   patchLayout: (updater: (l: ILayoutConfig) => ILayoutConfig) => void;
-  selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' | 'image' } | null;
+  selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
   itemColors?: Record<string, IItemFieldColors>;
   itemSizes?: Record<string, IItemFieldSizes>;
   itemTags?: Record<string, IItemFieldTags>;
-  itemImages?: Record<string, IItemFieldImage>;
   onChangeFieldColor?: (field: 'category' | 'name' | 'price', color: string) => void;
   onChangeFieldSize?: (field: 'category' | 'name' | 'price', size: string) => void;
   onChangeFieldTag?: (field: 'category' | 'name' | 'price', tag: boolean) => void;
-  onChangeImagePosition?: (position: string) => void;
-  onChangeImageScale?: (scale: number) => void;
 }
 
 export function PropertiesPanel({
@@ -50,12 +47,9 @@ export function PropertiesPanel({
   itemColors = {},
   itemSizes = {},
   itemTags = {},
-  itemImages = {},
   onChangeFieldColor,
   onChangeFieldSize,
   onChangeFieldTag,
-  onChangeImagePosition,
-  onChangeImageScale,
 }: PropertiesPanelProps) {
   const ph = (p: Partial<ILayoutHeader>) => patchLayout((l) => ({ ...l, header: { ...l.header, ...p } }));
   const pm = (p: Partial<ILayoutMain>) => patchLayout((l) => ({ ...l, main: { ...l.main, ...p } }));
@@ -108,8 +102,8 @@ export function PropertiesPanel({
           <div><div className="text-sm text-gray-600 mb-2">Rows</div><NumPills options={[1, 2, 3]} value={m.rows} onChange={(v) => pm({ rows: v })} /></div>
           <div className="flex items-center justify-between border-t pt-3"><span className="text-sm text-gray-600">Category label</span><MiniToggle value={m.show_category_label} onChange={(v) => pm({ show_category_label: v })} /></div>
 
-          {/* Field controls — shown when a field is selected on canvas */}
-          {selectedField && selectedField.fieldType !== 'image' && (
+          {/* Unified field controls - shown when a field is selected on canvas */}
+          {selectedField && (
             <div className="border-t pt-4">
               <div className="text-sm text-gray-600 mb-3 font-semibold">
                 {currentFieldType === 'category' ? 'Category' : currentFieldType === 'name' ? 'Name' : 'Price'} Styling
@@ -149,139 +143,6 @@ export function PropertiesPanel({
               </div>
             </div>
           )}
-
-          {/* Image position picker — shown when image area is clicked */}
-          {selectedField?.fieldType === 'image' && (() => {
-            const rawPos = itemImages[selectedField.itemId]?.position ?? '50% 50%';
-            const scaleVal = itemImages[selectedField.itemId]?.scale ?? 1;
-
-            // Parse "X% Y%" or CSS keywords into 0-100 numbers
-            const parsePos = (s: string): [number, number] => {
-              const keywordX: Record<string, number> = { left: 0, center: 50, right: 100 };
-              const keywordY: Record<string, number> = { top: 0, center: 50, bottom: 100 };
-              const parts = s.trim().split(/\s+/);
-              const xStr = parts[0] ?? '50%';
-              const yStr = parts[1] ?? '50%';
-              const x = xStr.endsWith('%') ? parseFloat(xStr) : (keywordX[xStr] ?? 50);
-              const y = yStr.endsWith('%') ? parseFloat(yStr) : (keywordY[yStr] ?? 50);
-              return [Math.round(x), Math.round(y)];
-            };
-
-            const [xVal, yVal] = parsePos(rawPos);
-
-            const emit = (x: number, y: number) => onChangeImagePosition?.(`${x}% ${y}%`);
-
-            const labelX = xVal === 0 ? 'Left' : xVal === 100 ? 'Right' : xVal === 50 ? 'Center' : `${xVal}%`;
-            const labelY = yVal === 0 ? 'Top' : yVal === 100 ? 'Bottom' : yVal === 50 ? 'Center' : `${yVal}%`;
-
-            return (
-              <div className="border-t pt-4">
-                <div className="text-sm text-gray-600 mb-3 font-semibold">Image Position</div>
-                <div className="bg-gray-50 rounded-lg p-3 space-y-4">
-                  {/* Visual focal-point preview */}
-                  <div
-                    style={{
-                      position: 'relative',
-                      width: '100%',
-                      paddingBottom: '60%',
-                      background: 'linear-gradient(135deg,#c7d2fe,#e0e7ff)',
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      border: '1px solid #e5e7eb',
-                    }}
-                  >
-                    <div style={{
-                      position: 'absolute', inset: 0,
-                      backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 9px,rgba(99,102,241,0.15) 9px,rgba(99,102,241,0.15) 10px),repeating-linear-gradient(90deg,transparent,transparent 9px,rgba(99,102,241,0.15) 9px,rgba(99,102,241,0.15) 10px)',
-                    }} />
-                    {/* Focal dot */}
-                    <div style={{
-                      position: 'absolute',
-                      left: `${xVal}%`,
-                      top:  `${yVal}%`,
-                      transform: 'translate(-50%, -50%)',
-                      width: '14px', height: '14px',
-                      borderRadius: '50%',
-                      background: '#2563eb',
-                      border: '2px solid #fff',
-                      boxShadow: '0 0 0 2px #2563eb',
-                      pointerEvents: 'none',
-                    }} />
-                  </div>
-
-                  {/* Vertical slider */}
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs font-semibold text-gray-600">Vertical</span>
-                      <span className="text-xs text-blue-600 font-bold">{labelY}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-6 text-center">↑</span>
-                      <input
-                        type="range" min={0} max={100} value={yVal}
-                        onChange={(e) => emit(xVal, Number(e.target.value))}
-                        className="flex-1 accent-blue-600"
-                      />
-                      <span className="text-xs text-gray-400 w-6 text-center">↓</span>
-                    </div>
-                  </div>
-
-                  {/* Horizontal slider */}
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs font-semibold text-gray-600">Horizontal</span>
-                      <span className="text-xs text-blue-600 font-bold">{labelX}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-6 text-center">←</span>
-                      <input
-                        type="range" min={0} max={100} value={xVal}
-                        onChange={(e) => emit(Number(e.target.value), yVal)}
-                        className="flex-1 accent-blue-600"
-                      />
-                      <span className="text-xs text-gray-400 w-6 text-center">→</span>
-                    </div>
-                  </div>
-
-                  {/* Zoom slider */}
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs font-semibold text-gray-600">Zoom</span>
-                      <span className="text-xs text-blue-600 font-bold">{scaleVal === 1 ? 'Normal' : `${scaleVal.toFixed(1)}×`}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-6 text-center">🔍</span>
-                      <input
-                        type="range" min={100} max={300} step={5} value={Math.round(scaleVal * 100)}
-                        onChange={(e) => onChangeImageScale?.(Number(e.target.value) / 100)}
-                        className="flex-1 accent-blue-600"
-                      />
-                      <span className="text-xs text-gray-400 w-6 text-center">🔎</span>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1">Zoom in to get more pan range</p>
-                  </div>
-
-                  {/* Quick presets */}
-                  <div>
-                    <span className="text-xs text-gray-500 font-semibold block mb-1.5">Quick presets</span>
-                    <div className="grid grid-cols-3 gap-1">
-                      {([['Top', 50, 0], ['Center', 50, 50], ['Bottom', 50, 100],
-                         ['Left', 0, 50], ['Right', 100, 50],
-                         ['Top-L', 0, 0], ['Top-R', 100, 0], ['Bot-L', 0, 100], ['Bot-R', 100, 100]] as [string, number, number][]).map(([label, px, py]) => {
-                        const active = xVal === px && yVal === py;
-                        return (
-                          <button key={label} type="button" onClick={() => emit(px, py)}
-                            className={`text-xs py-1 rounded border transition-colors font-medium ${active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200 hover:border-blue-300'}`}>
-                            {label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
 
           <div className="border-t pt-3 text-xs text-gray-400 leading-relaxed">Click on category, name, or price text on items to edit styling for all items</div>
         </div>

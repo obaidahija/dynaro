@@ -1,5 +1,5 @@
 import React from 'react';
-import type { IItemFieldColors, IItemFieldSizes, IItemFieldTags, IItemFieldImage, CardPromotion } from '../display-types';
+import type { IItemFieldColors, IItemFieldSizes, IItemFieldTags, CardPromotion } from '../display-types';
 
 function formatPrice(price: number): string {
   return price.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -57,14 +57,10 @@ export interface MenuItemCardProps {
   animationDelay?: number;
   /** Active promotion for this item — renders badge + discounted price */
   promo?: CardPromotion | null;
-  /** Image positioning/fit settings */
-  fieldImage?: IItemFieldImage;
   /** Click handlers for individual fields */
   onCategoryClick?: () => void;
   onNameClick?: () => void;
   onPriceClick?: () => void;
-  /** Called when user clicks the image area (edit mode) */
-  onImageClick?: () => void;
   /** Which field is currently selected for styling (itemId + fieldType) */
   selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
 }
@@ -86,8 +82,6 @@ export function MenuItemCard({
   onCategoryClick,
   onNameClick,
   onPriceClick,
-  onImageClick,
-  fieldImage,
   selectedField,
   promo,
 }: MenuItemCardProps) {
@@ -139,17 +133,7 @@ export function MenuItemCard({
       }}
     >
       {/* ── Image area ─────────────────────────────────────────── */}
-      <div
-        onClick={(e) => { e.stopPropagation(); onImageClick?.(); }}
-        style={{
-          position: 'relative', flex: 1, overflow: 'hidden', minHeight: 0,
-          cursor: onImageClick ? 'pointer' : 'default',
-          outline: (onImageClick && selectedField?.fieldType === 'image' && selectedField.itemId === item?._id)
-            ? '2px solid #60a5fa' : '2px solid transparent',
-          outlineOffset: '-2px',
-          transition: 'outline-color 0.15s',
-        }}
-      >
+      <div style={{ position: 'relative', flex: 1, overflow: 'hidden', minHeight: 0 }}>
         {item?.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -158,13 +142,7 @@ export function MenuItemCard({
             loading="eager"
             decoding="async"
             fetchPriority="high"
-            style={{
-              width: '100%', height: '100%', objectFit: 'cover', display: 'block',
-              objectPosition: fieldImage?.position ?? 'center center',
-              transform: `scale(${fieldImage?.scale ?? 1})`,
-              transformOrigin: fieldImage?.position ?? 'center center',
-              transition: 'transform 0.2s ease, object-position 0.2s ease',
-            }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))' }}>

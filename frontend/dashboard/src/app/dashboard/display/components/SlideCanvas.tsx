@@ -5,7 +5,7 @@ import { MenuItemCard } from '@shared/components/MenuItemCard';
 import { DisplayHeader } from '@shared/components/DisplayHeader';
 import {
   ILayoutConfig, ILayoutHeader, ILayoutMain,
-  IItemFieldColors, IItemFieldSizes, IItemFieldTags, IItemFieldImage,
+  IItemFieldColors, IItemFieldSizes, IItemFieldTags,
   MOCK_CAT_SIZES, MOCK_NAME_SIZES, MOCK_PRICE_SIZES,
   SIZE_STEPS, SIZE_LABELS, BG_THEMES,
 } from '@shared/display-types';
@@ -91,7 +91,6 @@ function MainMock({
   itemColors = {},
   itemSizes = {},
   itemTags = {},
-  itemImages = {},
   selectedField,
   onSelectField,
   onRemoveItem,
@@ -105,9 +104,8 @@ function MainMock({
   itemColors?: Record<string, IItemFieldColors>;
   itemSizes?: Record<string, IItemFieldSizes>;
   itemTags?: Record<string, IItemFieldTags>;
-  itemImages?: Record<string, IItemFieldImage>;
-  selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' | 'image' } | null;
-  onSelectField?: (field: { itemId: string; fieldType: 'category' | 'name' | 'price' | 'image' } | null) => void;
+  selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
+  onSelectField?: (field: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null) => void;
   onRemoveItem?: (itemId: string) => void;
   onReorderItems?: (newItems: IMenuItem[]) => void;
 }) {
@@ -117,7 +115,7 @@ function MainMock({
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [overIdx, setOverIdx] = useState<number | null>(null);
 
-  const handleFieldClick = (itemId: string, fieldType: 'category' | 'name' | 'price' | 'image') => {
+  const handleFieldClick = (itemId: string, fieldType: 'category' | 'name' | 'price') => {
     onSelect();
     onSelectField?.({ itemId, fieldType });
   };
@@ -200,14 +198,12 @@ function MainMock({
               fieldColors={perColor}
               fieldSizes={perSize}
               fieldTags={perTag}
-              fieldImage={item && itemImages ? itemImages[item._id] : undefined}
               resolvedSizes={resolvedSizes}
               isEditing={false}
               selectedField={selectedField}
               onCategoryClick={() => item && handleFieldClick(item._id, 'category')}
               onNameClick={() => item && handleFieldClick(item._id, 'name')}
               onPriceClick={() => item && handleFieldClick(item._id, 'price')}
-              onImageClick={() => item && handleFieldClick(item._id, 'image')}
             />
             {item && (
               <button
@@ -325,9 +321,8 @@ export interface SlideCanvasProps {
   itemColors?: Record<string, IItemFieldColors>;
   itemSizes?: Record<string, IItemFieldSizes>;
   itemTags?: Record<string, IItemFieldTags>;
-  itemImages?: Record<string, IItemFieldImage>;
-  selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' | 'image' } | null;
-  onSelectField?: (field: { itemId: string; fieldType: 'category' | 'name' | 'price' | 'image' } | null) => void;
+  selectedField?: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null;
+  onSelectField?: (field: { itemId: string; fieldType: 'category' | 'name' | 'price' } | null) => void;
   onRemoveItem?: (itemId: string) => void;
   onReorderItems?: (newItems: IMenuItem[]) => void;
 }
@@ -340,7 +335,6 @@ export function SlideCanvas({
   itemColors,
   itemSizes,
   itemTags,
-  itemImages,
   selectedField,
   onSelectField,
   onRemoveItem,
@@ -369,7 +363,6 @@ export function SlideCanvas({
         itemColors={itemColors}
         itemSizes={itemSizes}
         itemTags={itemTags}
-        itemImages={itemImages}
         selectedField={selectedField}
         onSelectField={onSelectField}
         onRemoveItem={onRemoveItem}
